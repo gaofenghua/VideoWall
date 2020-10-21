@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "VWStream.h"
 
 using namespace std;
 using namespace libconfig;
@@ -25,6 +26,19 @@ DataManager::DataManager()
 	{
 		return;
 	}
+
+	GlobalResourceInitial();
+}
+
+void DataManager::GlobalResourceInitial()
+{
+	avformat_network_init();
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER);
+}
+void DataManager::GlobalResourceCleanUp()
+{
+	SDL_Quit();
+	avformat_network_deinit();
 }
 
 int DataManager::ReadConfigFile()

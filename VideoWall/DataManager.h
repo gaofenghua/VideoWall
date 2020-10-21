@@ -12,6 +12,8 @@ class DataManager
 		DataManager();
 		std::string GetCameraRtsp(int);
 		void WriteFile(void);
+		void GlobalResourceInitial();
+		void GlobalResourceCleanUp();
 
 	private:
 		int m_Status = 0;
@@ -36,4 +38,5 @@ class DataManager
 		bool chkNumber(std::string& str);
 		std::vector<std::string> split(std::string& str, char delim);
 		bool validateIP(std::string ip);
+
 };
