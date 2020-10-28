@@ -10,10 +10,13 @@ class DataManager
 {
 	public:
 		DataManager();
-		std::string GetCameraRtsp(int);
-		void WriteFile(void);
-		void GlobalResourceInitial();
-		void GlobalResourceCleanUp();
+		
+		int GetScreenView(int t_ScreenID); // return the number of views
+		int GetViewChannel(int t_ViewID); // return the number of channels
+		int GetSwitchInterval(void); // return the switch interval
+		std::vector<int> GetTouringCameras(int t_ViewID); // return the list of trackerIDs 
+		std::string GetCameraRtsp(int t_CameraID); // return the rtsp url
+		std::vector<int> GetCameraTourInfo(int t_ViewID, int t_ChannelID); // return the list of trackerIDs
 
 	private:
 		int m_Status = 0;
@@ -39,4 +42,9 @@ class DataManager
 		std::vector<std::string> split(std::string& str, char delim);
 		bool validateIP(std::string ip);
 
+	public:
+		void ReadFile(void);
+		void WriteFile(void);
+		void GlobalResourceInitial();
+		void GlobalResourceCleanUp();
 };

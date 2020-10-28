@@ -162,6 +162,18 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	SDL_Thread *p = SDL_CreateThread(ReadFrame_Thread, NULL, (void*)this);
 }
 
+int VWStream::ReadFrame(AVPacket *pPacket)
+{
+	return 0;
+}
+int VWStream::Close(void)
+{
+	return 0;
+}
+int VWStream::Destruct(void)
+{
+	return 0;
+}
 int VWStream::SetURL(int nCameraID, std::string sURL)
 {
 	m_CameraID = nCameraID;

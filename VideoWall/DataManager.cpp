@@ -116,7 +116,7 @@ int DataManager::ReadConfigFile()
 			for (int j = 0; j < nLength; j++)
 			{
 				m_Channels[i][j] = vw_channels[j];
-				printf("%d\r\n", m_Channels[i][j]);
+				//printf("%d\r\n", m_Channels[i][j]);
 			}
 
 		}
@@ -139,6 +139,28 @@ int DataManager::VerifyInputData(void)
 	return 0;
 }
 
+int DataManager::GetScreenView(int t_ScreenID)
+{
+	return 0;
+}
+int DataManager::GetViewChannel(int t_ViewID)
+{
+	return 0;
+}
+int DataManager::GetSwitchInterval(void)
+{
+	return 0;
+}
+vector<int> DataManager::GetTouringCameras(int t_ViewID)
+{
+	vector<int> a;
+	return a;
+}
+vector<int> DataManager::GetCameraTourInfo(int t_ViewID, int t_ChannelID)
+{
+	vector<int> a;
+	return a;
+}
 string DataManager::GetCameraRtsp(int t_CameraID)
 {
 	if (m_Status != 0)
@@ -158,6 +180,8 @@ string DataManager::GetCameraRtsp(int t_CameraID)
 	sUrl += m_PassWord;
 	sUrl += "&stream=2";
 
+	printf("GetCameraRtsp: input = %d, output = %s\n", t_CameraID, sUrl.data());
+
 	return sUrl ;
 }
 
@@ -176,6 +200,32 @@ void DataManager::WriteFile()
 	}
 
 	outFile.close();
+}
+
+void DataManager::ReadFile()
+{
+	string s;
+	char buffer[256];
+	ifstream inFile;
+	inFile.open("./channels_0.txt", ios::in | ios::binary );
+
+	if (false == inFile.is_open())
+	{
+		return;
+	}
+
+	cout << "com.txt" << " 的内容如下:" << endl;
+	while (!inFile.eof())
+	{
+		//inFile.getline(buffer, 256, '\n');//getline(char *,int,char) 表示该行字符达到256个或遇到换行就结束
+		//cout << buffer << endl;
+
+		getline(inFile,s);
+		
+		cout << s << endl;
+	}
+	inFile.close();
+
 }
 
 // check if the given string is a numeric string or not

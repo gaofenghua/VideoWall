@@ -23,12 +23,19 @@ class VWStream
 {
 	public:
 		VWStream();
-		int Connect(int nCameraID, std::string sURL);
+
+		int Connect(int nCameraID, std::string sURL); // return error code
+		int ReadFrame(AVPacket *pPacket); // return content of Packet
+		int Close(void); // return error code
+		int Destruct(void); // return error code
+
+	private:
 		int CleanUP();
 
 		int SetURL(int, std::string);
 		void PrintStatus();
-
+	
+	public:
 		struct VideoDecoder
 		{
 			//ffmpeg
