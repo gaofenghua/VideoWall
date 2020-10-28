@@ -161,6 +161,15 @@ vector<int> DataManager::GetCameraTourInfo(int t_ViewID, int t_ChannelID)
 	vector<int> a;
 	return a;
 }
+vector<int> DataManager::GetScreenIDs(void)
+{
+	vector<int> a;
+	return a;
+}
+int DataManager::GetScreenInfo(int t_ScreenID, RECT* pScreenRect)
+{
+	return 0;
+}
 string DataManager::GetCameraRtsp(int t_CameraID)
 {
 	if (m_Status != 0)

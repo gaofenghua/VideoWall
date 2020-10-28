@@ -1,6 +1,7 @@
 #pragma once
 #include<string>
 #include <vector>
+#include <Windows.h>
 
 #define USER_ERROR	100
 #define ERROR_CONFIGURATION_SETTING_MISSING		USER_ERROR+1
@@ -17,6 +18,8 @@ class DataManager
 		std::vector<int> GetTouringCameras(int t_ViewID); // return the list of trackerIDs 
 		std::string GetCameraRtsp(int t_CameraID); // return the rtsp url
 		std::vector<int> GetCameraTourInfo(int t_ViewID, int t_ChannelID); // return the list of trackerIDs
+		std::vector<int> GetScreenIDs(void); // return the list of screen ids
+		int GetScreenInfo(int t_ScreenID, RECT* pScreenRect); // return content of the screen rect
 
 	private:
 		int m_Status = 0;

@@ -19,6 +19,9 @@ int main(int argc, char* args[])
 	}
 
 	dm.ReadFile();
+
+	//DISPLAY_DEVICE device = { 0 };
+	//EnumDisplayDevices();
 	
 	//dm.WriteFile();
 
