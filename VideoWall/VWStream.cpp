@@ -26,6 +26,8 @@ int ReadFrame_Thread(void *opaque)
 	{
 		if (pDecoder->packet->stream_index == pDecoder->videoindex)
 		{
+			char* pb =(char*) pDecoder->packet->data;
+			printf("-------%.2x, %.2x, %.2x, %.2x, %.2x\r\n", *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
 			//Lock
 			SDL_LockMutex(pDecoder->BufferLock);
 
@@ -53,7 +55,8 @@ int ReadFrame_Thread(void *opaque)
 
 			SDL_UnlockMutex(pDecoder->BufferLock);
 
-			printf("ReadFrame_Thread, buffer head = %d, end = %d\r\n", pDecoder->Buffer_Head, pDecoder->Buffer_End);
+			//AV_PKT_FLAG_KEY
+			printf("ReadFrame_Thread, buffer head = %d, end = %d, flag=%d\r\n", pDecoder->Buffer_Head, pDecoder->Buffer_End, (pDecoder->Package_Buffer[pDecoder->Buffer_End-1]).flags);
 			//SDL_Delay(40);
 		}
 	}
@@ -164,6 +167,40 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 
 int VWStream::ReadFrame(AVPacket *pPacket)
 {
+	AVPacket* packet;
+	//packet = (AVPacket *)av_malloc(sizeof(AVPacket));
+	packet = pPacket;
+
+	VideoDecoder* pDecoder = &m_Decoder;
+
+	SDL_LockMutex(pDecoder->BufferLock);
+
+	if (pDecoder->Buffer_Head == -1 || (pDecoder->Buffer_Head == pDecoder->Buffer_End && pDecoder->HeadCatchEnd))
+	{
+		//Unlock
+		SDL_UnlockMutex(pDecoder->BufferLock);
+		return ERROR_NO_MORE_DATA;
+	}
+
+	av_packet_ref(packet, &(pDecoder->Package_Buffer[pDecoder->Buffer_Head]));
+	av_packet_unref(&(pDecoder->Package_Buffer[pDecoder->Buffer_Head]));
+
+	pDecoder->Buffer_Head = (pDecoder->Buffer_Head + 1 >= gi_Buffer_Size) ? 0 : pDecoder->Buffer_Head + 1;
+
+	if (pDecoder->Buffer_Head == pDecoder->Buffer_End)
+	{
+		pDecoder->HeadCatchEnd = true;
+	}
+
+	//Unlock
+	SDL_UnlockMutex(pDecoder->BufferLock);
+
+
+	//av_packet_unref(packet);
+	av_packet_free(&packet);
+
+	printf("Software decode and render thread exit. di = \r\n");
+
 	return 0;
 }
 int VWStream::Close(void)
@@ -185,4 +222,29 @@ int VWStream::SetURL(int nCameraID, std::string sURL)
 void VWStream::PrintStatus()
 {
 	printf("VWStream Obj CameraID = %d, buffer head = %d, end = %d\r\n", m_CameraID, m_Decoder.Buffer_Head, m_Decoder.Buffer_End);
+}
+
+void test()
+{
+	AVBSFContext * h264bsfc;
+	const AVBitStreamFilter * filter = av_bsf_get_by_name("h264_mp4toannexb");
+	ret = av_bsf_alloc(filter, &h264bsfc);
+	avcodec_parameters_copy(h264bsfc->par_in, input_fmt_ctx->streams[video_stream_index]->codecpar);
+	av_bsf_init(h264bsfc);
+	AVPacket* packet = av_packet_alloc();
+	while (av_read_frame(format_ctx_, packet) >= 0) 
+	{
+		if (packet.stream_index == video_stream_index) 
+		{
+			ret = av_bsf_send_packet(h264bsfc, packet);
+			if (ret < 0) qDebug("av_bsf_send_packet error");
+			while ((ret = av_bsf_receive_packet(h264bsfc, packet)) == 0) 
+			{
+				fwrite(packet->data, packet->size, 1, fp);
+			}
+		}
+		av_packet_unref(packet);
+	}
+	av_packet_free(&packet);
+	av_bsf_free(&h264bsfc);
 }

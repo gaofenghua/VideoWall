@@ -11,14 +11,14 @@ int main(int argc, char* args[])
 {
 	printf("Testing function begins:\n");
 
-	DataManager dm;
+	//DataManager dm;
 
-	for (int i = 0; i < 20; i++)
-	{
-		dm.GetCameraRtsp(i);
-	}
+	//for (int i = 0; i < 20; i++)
+	//{
+	//	dm.GetCameraRtsp(i);
+	//}
 
-	dm.ReadFile();
+	//dm.ReadFile();
 
 	//DISPLAY_DEVICE device = { 0 };
 	//EnumDisplayDevices();
@@ -30,9 +30,9 @@ int main(int argc, char* args[])
 
 	//cout << sUrl;
 
-	//VWStream stm;
+	VWStream stm;
 	//VWStream stm2;
-	//stm.Connect(1, "rtsp://root:pass@172.20.76.100/axis-media/media.amp?videocodec=h264");
+	stm.Connect(1, "rtsp://root:pass@172.20.76.100/axis-media/media.amp?videocodec=h264");
 	//stm2.Connect(1, "rtsp://root:pass@172.20.76.100/axis-media/media.amp?videocodec=h264");
 
 	//for (int i = 0; i < 10; i++)

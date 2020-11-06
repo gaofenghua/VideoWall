@@ -1,11 +1,11 @@
 #pragma once
-#include<string>
+#include <string>
 #include <vector>
 #include <Windows.h>
 
-#define USER_ERROR	100
-#define ERROR_CONFIGURATION_SETTING_MISSING		USER_ERROR+1
-#define ERROR_IP_FORMAT							USER_ERROR+2
+#define DATAMANAGER_ERROR	0
+#define ERROR_CONFIGURATION_SETTING_MISSING		DATAMANAGER_ERROR-1
+#define ERROR_IP_FORMAT							DATAMANAGER_ERROR-2
 
 class DataManager
 {

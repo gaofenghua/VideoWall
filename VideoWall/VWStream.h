@@ -15,6 +15,10 @@ extern "C"
 #include "SDL/SDL_syswm.h"
 
 
+#define VWSTREAM_ERROR	-100
+#define ERROR_NO_MORE_DATA		VWSTREAM_ERROR-1
+
+
 //Global data
 const int gi_Buffer_Size = 100;
 
