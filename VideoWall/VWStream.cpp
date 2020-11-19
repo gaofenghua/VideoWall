@@ -27,7 +27,27 @@ int ReadFrame_Thread(void *opaque)
 		if (pDecoder->packet->stream_index == pDecoder->videoindex)
 		{
 			char* pb =(char*) pDecoder->packet->data;
-			printf("-------%.2x, %.2x, %.2x, %.2x, %.2x\r\n", *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
+			printf("-------Addr=%p, size=%d, %.2x %.2x %.2x %.2x %.2x\r\n",pb, pDecoder->packet->size, *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
+
+			//
+			//
+			int ret = av_bsf_send_packet(pStreamObj->h264bsfc, pDecoder->packet);
+			if (ret < 0)
+			{
+				printf("av_bsf_send_packet error");
+			}
+			while ((ret = av_bsf_receive_packet(pStreamObj->h264bsfc, pDecoder->packet)) == 0)
+			{
+				//fwrite(packet->data, packet->size, 1, fp);
+				char* pb = (char*)pDecoder->packet->data;
+				printf("+++++++++ %.2x %.2x %.2x %.2x %.2x", *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
+				printf(" add=%p,size= %d  ", pDecoder->packet->data, pDecoder->packet->size);
+			}
+			//
+
+			//pStreamObj->test(pDecoder->packet);
+			pStreamObj->WriteOutputFile(pDecoder->packet);
+
 			//Lock
 			SDL_LockMutex(pDecoder->BufferLock);
 
@@ -68,9 +88,12 @@ int ReadFrame_Thread(void *opaque)
 
 VWStream::VWStream()
 {
-
+	OpenOutputFile();
 }
-
+VWStream::~VWStream()
+{
+	CloseOutputFile();
+}
 int VWStream::CleanUP()
 {
 	VideoDecoder *pDecoder = &(m_Decoder);
@@ -112,10 +135,7 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 		return -1;
 	}
 
-	//Output Info-----------------------------
-	printf("--------------- File Information ----------------\n");
-	av_dump_format(pDecoder->pFormatCtx, 0, m_URL.data(), 0);
-	printf("-------------------------------------------------\n");
+
 
 	if (avformat_find_stream_info(pDecoder->pFormatCtx, NULL) < 0)
 	{
@@ -133,22 +153,22 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	pDecoder->videoindex = ret;
 
 
-	//if (!(pDecoder->pCodecCtx = avcodec_alloc_context3(pDecoder->pCodec)))
-	//{
-	//	return AVERROR(ENOMEM);
-	//}
+	if (!(pDecoder->pCodecCtx = avcodec_alloc_context3(pDecoder->pCodec)))
+	{
+		return AVERROR(ENOMEM);
+	}
 
-	//AVStream* video = pDecoder->pFormatCtx->streams[pDecoder->videoindex];
-	//if (avcodec_parameters_to_context(pDecoder->pCodecCtx, video->codecpar) < 0)
-	//{
-	//	return -1;
-	//}
+	AVStream* video = pDecoder->pFormatCtx->streams[pDecoder->videoindex];
+	if (avcodec_parameters_to_context(pDecoder->pCodecCtx, video->codecpar) < 0)
+	{
+		return -1;
+	}
 
-	//if ((ret = avcodec_open2(pDecoder->pCodecCtx, pDecoder->pCodec, NULL)) < 0)
-	//{
-	//	fprintf(stderr, "Failed to open codec for stream #%u\n", pDecoder->videoindex);
-	//	return -1;
-	//}
+	if ((ret = avcodec_open2(pDecoder->pCodecCtx, pDecoder->pCodec, NULL)) < 0)
+	{
+		fprintf(stderr, "Failed to open codec for stream #%u\n", pDecoder->videoindex);
+		return -1;
+	}
 
 
 	//pDecoder->pFrame = av_frame_alloc();
@@ -161,7 +181,27 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	////pDecoder->img_convert_ctx = sws_getContext(pDecoder->pCodecCtx->width, pDecoder->pCodecCtx->height, pDecoder->pCodecCtx->pix_fmt, pDecoder->pCodecCtx->width, pDecoder->pCodecCtx->height, AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
 	//pDecoder->img_convert_ctx = sws_getContext(pDecoder->pCodecCtx->width, pDecoder->pCodecCtx->height, pDecoder->pCodecCtx->pix_fmt, 270, 180, AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
 
+	//Output Info-----------------------------
+	printf("--------------- File Information ----------------\n");
+	av_dump_format(pDecoder->pFormatCtx, 0, m_URL.data(), 0);
+	printf("-------------------------------------------------\n");
 
+
+	
+	filter = av_bsf_get_by_name("h264_mp4toannexb");
+	ret = av_bsf_alloc(filter, &h264bsfc);
+
+	m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->codec_tag = MKTAG('a', 'v', 'c', '1');
+	avcodec_parameters_copy(h264bsfc->par_in, m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar);
+	h264bsfc->time_base_in = m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->time_base;
+	ret = av_bsf_init(h264bsfc);
+	ret = avcodec_parameters_copy(m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar, h264bsfc->par_out);
+	m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->time_base = h264bsfc->time_base_out;
+
+	//char a[4];
+	//strcmp(av_fourcc2str(m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->codec_tag), "xxx");
+	//strcmp(av_fourcc2str(ifmt_ctx->streams[i]->codecpar->codec_tag), "avc1");
+	//
 	SDL_Thread *p = SDL_CreateThread(ReadFrame_Thread, NULL, (void*)this);
 }
 
@@ -224,27 +264,74 @@ void VWStream::PrintStatus()
 	printf("VWStream Obj CameraID = %d, buffer head = %d, end = %d\r\n", m_CameraID, m_Decoder.Buffer_Head, m_Decoder.Buffer_End);
 }
 
-void test()
+void VWStream::OpenOutputFile()
+{
+	fp = fopen("junktest.h264", "ab");
+}
+
+void VWStream::CloseOutputFile()
+{
+	fclose(fp);
+}
+void VWStream::WriteOutputFile(AVPacket *packet)
+{
+	if (packet->flags == 1)
+	{
+		//fwrite(m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->extradata, 1, m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->extradata_size, fp);
+	}
+	
+	fwrite(packet->data, packet->size, 1, fp);
+}
+void VWStream::test(AVPacket * packet)
 {
 	AVBSFContext * h264bsfc;
 	const AVBitStreamFilter * filter = av_bsf_get_by_name("h264_mp4toannexb");
-	ret = av_bsf_alloc(filter, &h264bsfc);
-	avcodec_parameters_copy(h264bsfc->par_in, input_fmt_ctx->streams[video_stream_index]->codecpar);
+	int ret = av_bsf_alloc(filter, &h264bsfc);
+	avcodec_parameters_copy(h264bsfc->par_in, m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar);
 	av_bsf_init(h264bsfc);
-	AVPacket* packet = av_packet_alloc();
-	while (av_read_frame(format_ctx_, packet) >= 0) 
-	{
-		if (packet.stream_index == video_stream_index) 
-		{
+	//AVPacket* packet = av_packet_alloc();
+	
+		
 			ret = av_bsf_send_packet(h264bsfc, packet);
-			if (ret < 0) qDebug("av_bsf_send_packet error");
+			if (ret < 0)
+			{
+				printf("av_bsf_send_packet error");
+			}
 			while ((ret = av_bsf_receive_packet(h264bsfc, packet)) == 0) 
 			{
-				fwrite(packet->data, packet->size, 1, fp);
+				//fwrite(packet->data, packet->size, 1, fp);
+				char* pb = (char*)packet->data;
+				printf("+++++++++ %.2x %.2x %.2x %.2x %.2x", *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
+				printf(" add=%p,size= %d  ", packet->data, packet->size);
 			}
-		}
-		av_packet_unref(packet);
-	}
-	av_packet_free(&packet);
-	av_bsf_free(&h264bsfc);
+		
+	//	av_packet_unref(packet);
+	//
+	//av_packet_free(&packet);
+	//av_bsf_free(&h264bsfc);
 }
+
+//void VWStream::test(AVPacket * packet)
+//{
+//	AVBSFContext * h264bsfc;
+//	const AVBitStreamFilter * filter = av_bsf_get_by_name("h264_mp4toannexb");
+//	int ret = av_bsf_alloc(filter, &h264bsfc);
+//	avcodec_parameters_copy(h264bsfc->par_in, input_fmt_ctx->streams[video_stream_index]->codecpar);
+//	av_bsf_init(h264bsfc);
+//	AVPacket* packet = av_packet_alloc();
+//	while (av_read_frame(format_ctx_, packet) >= 0)
+//	{
+//		if (packet.stream_index == video_stream_index)
+//		{
+//			ret = av_bsf_send_packet(h264bsfc, packet);
+//			if (ret < 0) qDebug("av_bsf_send_packet error");
+//			while ((ret = av_bsf_receive_packet(h264bsfc, packet)) == 0)
+//			{
+//				fwrite(packet->data, packet->size, 1, fp);
+//			}
+//		}
+//		av_packet_unref(packet);
+//	}
+//	av_packet_free(&packet);
+//	av_bsf_free(&h264bsfc);
+//}

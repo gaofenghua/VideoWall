@@ -45,9 +45,12 @@ int main(int argc, char* args[])
 	
 
 	//dm.GlobalResourceCleanUp();
-
-	printf("Testing function ends! \n");
 	getchar();
+	stm.m_Decoder.ReadFram_Thread_Exit = true;
+
+	getchar();
+	printf("Testing function ends! \n");
+	
 	return 0;
 }
 

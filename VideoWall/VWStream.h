@@ -27,6 +27,7 @@ class VWStream
 {
 	public:
 		VWStream();
+		~VWStream();
 
 		int Connect(int nCameraID, std::string sURL); // return error code
 		int ReadFrame(AVPacket *pPacket); // return content of Packet
@@ -83,4 +84,16 @@ class VWStream
 	
 		int m_CameraID = -1;
 		std::string m_URL;
+
+		void test(AVPacket * packet);
+
+		FILE *fp = NULL;
+		void OpenOutputFile();
+		void CloseOutputFile();
+		void WriteOutputFile(AVPacket *packet);
+
+		AVBSFContext * h264bsfc;
+		const AVBitStreamFilter * filter;
+
+		
 };
