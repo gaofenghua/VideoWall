@@ -33,6 +33,9 @@ int main(int argc, char* args[])
 	VWStream stm;
 	//VWStream stm2;
 	stm.Connect(1, "rtsp://root:pass@172.20.76.100/axis-media/media.amp?videocodec=h264");
+	//stm.Connect(1, "e:\\temp\\test.mp4");
+	//stm.Connect(1, "rtsp://192.168.77.211:50010/live?camera=1&user=admin&pass=A1crUF4%3D&stream=1");
+
 	//stm2.Connect(1, "rtsp://root:pass@172.20.76.100/axis-media/media.amp?videocodec=h264");
 
 	//for (int i = 0; i < 10; i++)

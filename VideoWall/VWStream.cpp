@@ -27,23 +27,23 @@ int ReadFrame_Thread(void *opaque)
 		if (pDecoder->packet->stream_index == pDecoder->videoindex)
 		{
 			char* pb =(char*) pDecoder->packet->data;
-			printf("-------Addr=%p, size=%d, %.2x %.2x %.2x %.2x %.2x\r\n",pb, pDecoder->packet->size, *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
+			printf("AV_Read_Frame Addr=%p, size=%d, Key=%d,  %.2x %.2x %.2x %.2x %.2x\r\n",pb, pDecoder->packet->size, pDecoder->packet->flags, *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
 
-			//
-			//
-			int ret = av_bsf_send_packet(pStreamObj->h264bsfc, pDecoder->packet);
-			if (ret < 0)
-			{
-				printf("av_bsf_send_packet error");
-			}
-			while ((ret = av_bsf_receive_packet(pStreamObj->h264bsfc, pDecoder->packet)) == 0)
-			{
-				//fwrite(packet->data, packet->size, 1, fp);
-				char* pb = (char*)pDecoder->packet->data;
-				printf("+++++++++ %.2x %.2x %.2x %.2x %.2x", *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
-				printf(" add=%p,size= %d  ", pDecoder->packet->data, pDecoder->packet->size);
-			}
-			//
+			////
+			////
+			//int ret = av_bsf_send_packet(pStreamObj->h264bsfc, pDecoder->packet);
+			//if (ret < 0)
+			//{
+			//	printf("av_bsf_send_packet error");
+			//}
+			//while ((ret = av_bsf_receive_packet(pStreamObj->h264bsfc, pDecoder->packet)) == 0)
+			//{
+			//	//fwrite(packet->data, packet->size, 1, fp);
+			//	char* pb = (char*)pDecoder->packet->data;
+			//	printf("+++++++++ %.2x %.2x %.2x %.2x %.2x", *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
+			//	printf(" add=%p,size= %d  ", pDecoder->packet->data, pDecoder->packet->size);
+			//}
+			////
 
 			//pStreamObj->test(pDecoder->packet);
 			pStreamObj->WriteOutputFile(pDecoder->packet);
@@ -76,7 +76,7 @@ int ReadFrame_Thread(void *opaque)
 			SDL_UnlockMutex(pDecoder->BufferLock);
 
 			//AV_PKT_FLAG_KEY
-			printf("ReadFrame_Thread, buffer head = %d, end = %d, flag=%d\r\n", pDecoder->Buffer_Head, pDecoder->Buffer_End, (pDecoder->Package_Buffer[pDecoder->Buffer_End-1]).flags);
+			//printf("ReadFrame_Thread, buffer head = %d, end = %d, flag=%d\r\n", pDecoder->Buffer_Head, pDecoder->Buffer_End, (pDecoder->Package_Buffer[pDecoder->Buffer_End-1]).flags);
 			//SDL_Delay(40);
 		}
 	}
