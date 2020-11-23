@@ -95,5 +95,5 @@ class VWStream
 		AVBSFContext * h264bsfc;
 		const AVBitStreamFilter * filter;
 
-		
+		void Init_BitStream_Filter();
 };

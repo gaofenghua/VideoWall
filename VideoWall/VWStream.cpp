@@ -282,6 +282,11 @@ void VWStream::WriteOutputFile(AVPacket *packet)
 	
 	fwrite(packet->data, packet->size, 1, fp);
 }
+
+void VWStream::Init_BitStream_Filter()
+{
+
+}
 void VWStream::test(AVPacket * packet)
 {
 	AVBSFContext * h264bsfc;
