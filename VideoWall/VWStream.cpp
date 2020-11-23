@@ -283,37 +283,10 @@ void VWStream::WriteOutputFile(AVPacket *packet)
 	fwrite(packet->data, packet->size, 1, fp);
 }
 
+
 void VWStream::Init_BitStream_Filter()
 {
 
-}
-void VWStream::test(AVPacket * packet)
-{
-	AVBSFContext * h264bsfc;
-	const AVBitStreamFilter * filter = av_bsf_get_by_name("h264_mp4toannexb");
-	int ret = av_bsf_alloc(filter, &h264bsfc);
-	avcodec_parameters_copy(h264bsfc->par_in, m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar);
-	av_bsf_init(h264bsfc);
-	//AVPacket* packet = av_packet_alloc();
-	
-		
-			ret = av_bsf_send_packet(h264bsfc, packet);
-			if (ret < 0)
-			{
-				printf("av_bsf_send_packet error");
-			}
-			while ((ret = av_bsf_receive_packet(h264bsfc, packet)) == 0) 
-			{
-				//fwrite(packet->data, packet->size, 1, fp);
-				char* pb = (char*)packet->data;
-				printf("+++++++++ %.2x %.2x %.2x %.2x %.2x", *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
-				printf(" add=%p,size= %d  ", packet->data, packet->size);
-			}
-		
-	//	av_packet_unref(packet);
-	//
-	//av_packet_free(&packet);
-	//av_bsf_free(&h264bsfc);
 }
 
 //void VWStream::test(AVPacket * packet)
