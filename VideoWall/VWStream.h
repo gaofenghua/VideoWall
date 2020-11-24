@@ -96,4 +96,6 @@ class VWStream
 		const AVBitStreamFilter * filter;
 
 		void Init_BitStream_Filter();
+		void BitStream_Filter(AVPacket * packet);
+		void Close_BitStream_Filter();
 };

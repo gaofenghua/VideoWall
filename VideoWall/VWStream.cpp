@@ -286,9 +286,37 @@ void VWStream::WriteOutputFile(AVPacket *packet)
 
 void VWStream::Init_BitStream_Filter()
 {
+	filter = av_bsf_get_by_name("h264_mp4toannexb");
+	int ret = av_bsf_alloc(filter, &h264bsfc);
+
+	//m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->codec_tag = MKTAG('a', 'v', 'c', '1');
+	avcodec_parameters_copy(h264bsfc->par_in, m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar);
+	h264bsfc->time_base_in = m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->time_base;
+	ret = av_bsf_init(h264bsfc);
+	ret = avcodec_parameters_copy(m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar, h264bsfc->par_out);
+	m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->time_base = h264bsfc->time_base_out;
+}
+
+void VWStream::BitStream_Filter(AVPacket * packet)
+{
+	int ret = av_bsf_send_packet(h264bsfc, packet);
+	if (ret < 0)
+	{
+		printf("av_bsf_send_packet error");
+	}
+	while ((ret = av_bsf_receive_packet(h264bsfc, packet)) == 0)
+	{
+		char* pb = (char*)packet->data;
+		printf("+++++++++ %.2x %.2x %.2x %.2x %.2x", *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
+		printf(" add=%p,size= %d  ", packet->data, packet->size);
+	}
 
 }
 
+void VWStream::Close_BitStream_Filter()
+{
+	av_bsf_free(&h264bsfc);
+}
 //void VWStream::test(AVPacket * packet)
 //{
 //	AVBSFContext * h264bsfc;
