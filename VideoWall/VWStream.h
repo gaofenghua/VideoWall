@@ -85,8 +85,6 @@ class VWStream
 		int m_CameraID = -1;
 		std::string m_URL;
 
-		void test(AVPacket * packet);
-
 		FILE *fp = NULL;
 		void OpenOutputFile();
 		void CloseOutputFile();
