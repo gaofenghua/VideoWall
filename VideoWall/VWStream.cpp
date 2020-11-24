@@ -26,9 +26,10 @@ int ReadFrame_Thread(void *opaque)
 	{
 		if (pDecoder->packet->stream_index == pDecoder->videoindex)
 		{
-			char* pb =(char*) pDecoder->packet->data;
+			BYTE* pb =(BYTE*) pDecoder->packet->data;
 			printf("AV_Read_Frame Addr=%p, size=%d, Key=%d,  %.2x %.2x %.2x %.2x %.2x\r\n",pb, pDecoder->packet->size, pDecoder->packet->flags, *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
 
+			
 			//Lock
 			SDL_LockMutex(pDecoder->BufferLock);
 
@@ -167,6 +168,7 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	av_dump_format(pDecoder->pFormatCtx, 0, m_URL.data(), 0);
 	printf("-------------------------------------------------\n");
 
+	Init_BitStream_Filter();
 
 	SDL_Thread *p = SDL_CreateThread(ReadFrame_Thread, NULL, (void*)this);
 }
@@ -272,9 +274,9 @@ void VWStream::BitStream_Filter(AVPacket * packet)
 	}
 	while ((ret = av_bsf_receive_packet(h264bsfc, packet)) == 0)
 	{
-		char* pb = (char*)packet->data;
-		printf("+++++++++ %.2x %.2x %.2x %.2x %.2x", *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
-		printf(" add=%p,size= %d  ", packet->data, packet->size);
+		BYTE* pb = (BYTE*)packet->data;
+		printf("+++++++++     addr=%p, size=%d,       %.2x %.2x %.2x %.2x %.2x\r\n", packet->data, packet->size, *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
+		
 	}
 
 }
