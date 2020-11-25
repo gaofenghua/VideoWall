@@ -16,7 +16,14 @@ extern "C"
 
 
 #define VWSTREAM_ERROR	-100
-#define ERROR_NO_MORE_DATA		VWSTREAM_ERROR-1
+
+#define ERROR_CONNECTION_FAILED	VWSTREAM_ERROR-1
+#define ERROR_NO_STREAM_INFO	VWSTREAM_ERROR-2
+#define ERROR_NO_VIDEO_STREAM	VWSTREAM_ERROR-3
+#define ERROR_NO_MEMORY			VWSTREAM_ERROR-4
+#define ERROR_AV_CODEC			VWSTREAM_ERROR-5
+#define ERROR_NO_MORE_DATA		VWSTREAM_ERROR-10
+
 
 
 //Global data
@@ -81,6 +88,7 @@ class VWStream
 			bool bDecoding_Started = false;
 		} m_Decoder;
 
+		void Init_Decoder_Data();
 	
 		int m_CameraID = -1;
 		std::string m_URL;

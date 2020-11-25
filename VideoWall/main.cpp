@@ -11,7 +11,7 @@ void Test_ReadFrame()
 {
 	VWStream stm;
 	//VWStream stm2;
-	stm.Connect(1, "rtsp://root:pass@172.20.76.100/axis-media/media.amp?videocodec=h264");
+	stm.Connect(1, "rtsp://root:pass@172.20.76.101/axis-media/media.amp?videocodec=h264");
 	//stm.Connect(1, "e:\\temp\\test.mp4");
 	//stm.Connect(1, "rtsp://192.168.77.211:50010/live?camera=1&user=admin&pass=A1crUF4%3D&stream=1");
 
@@ -23,8 +23,9 @@ void Test_ReadFrame()
 		stm.ReadFrame(packet);
 		stm.WriteOutputFile(packet);
 		
-		
-		Sleep(40);
+		i = i - 1; //long time test
+
+		Sleep(30);
 	}
 
 	av_packet_free(&packet);

@@ -19,15 +19,14 @@ int ReadFrame_Thread(void *opaque)
 
 	VWStream::VideoDecoder* pDecoder = (VWStream::VideoDecoder*)&(pStreamObj->m_Decoder);
 
-	//pDecoder->packet = (AVPacket *)av_malloc(sizeof(AVPacket));
 	pDecoder->packet = av_packet_alloc();
 
 	while (!pDecoder->ReadFram_Thread_Exit && av_read_frame(pDecoder->pFormatCtx, pDecoder->packet) >= 0)
 	{
 		if (pDecoder->packet->stream_index == pDecoder->videoindex)
 		{
-			BYTE* pb =(BYTE*) pDecoder->packet->data;
-			printf("AV_Read_Frame Addr=%p, size=%d, Key=%d,  %.2x %.2x %.2x %.2x %.2x\r\n",pb, pDecoder->packet->size, pDecoder->packet->flags, *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
+			//BYTE* pb =(BYTE*) pDecoder->packet->data;
+			//printf("AV_Read_Frame Addr=%p, size=%d, Key=%d,  %.2x %.2x %.2x %.2x %.2x\r\n",pb, pDecoder->packet->size, pDecoder->packet->flags, *pb, *(pb + 1), *(pb + 2), *(pb + 3), *(pb + 4));
 
 			
 			//Lock
@@ -37,9 +36,14 @@ int ReadFrame_Thread(void *opaque)
 			{
 				//Throw one package
 				pDecoder->Buffer_Head = (pDecoder->Buffer_Head + 1 >= gi_Buffer_Size) ? 0 : pDecoder->Buffer_Head + 1;
+
+				printf("Read Frame Warnning: Throw one package, Head=End = %d, HeadCatchEnd = %d\r\n", pDecoder->Buffer_Head, pDecoder->HeadCatchEnd);
 			}
 
-			av_packet_unref(&(pDecoder->Package_Buffer[pDecoder->Buffer_End]));
+			if (NULL != (pDecoder->Package_Buffer[pDecoder->Buffer_End]).buf)
+			{
+				av_packet_unref(&(pDecoder->Package_Buffer[pDecoder->Buffer_End]));
+			}
 			av_packet_ref(&(pDecoder->Package_Buffer[pDecoder->Buffer_End]), pDecoder->packet);
 			av_packet_unref(pDecoder->packet);
 
@@ -69,6 +73,7 @@ int ReadFrame_Thread(void *opaque)
 
 VWStream::VWStream()
 {
+	Init_Decoder_Data();
 	OpenOutputFile();
 }
 VWStream::~VWStream()
@@ -89,10 +94,23 @@ int VWStream::CleanUP()
 	return true;
 }
 
+void VWStream::Init_Decoder_Data()
+{
+	for (int i = 0; i < gi_Buffer_Size; i++)
+	{
+		av_init_packet(&(m_Decoder.Package_Buffer[i]));
+		m_Decoder.Package_Buffer[i].data = NULL;
+		m_Decoder.Package_Buffer[i].size = 0;
+	}
+
+}
+
 int VWStream::Connect(int nCameraID, std::string sURL)
 {
 	m_CameraID = nCameraID;
 	m_URL = sURL;
+
+	av_log_set_level(AV_LOG_DEBUG);
 
 	VideoDecoder *pDecoder = &(m_Decoder);
 
@@ -112,8 +130,10 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	int iRet = avformat_open_input(&(pDecoder->pFormatCtx), m_URL.data(), iformat, &options);
 	if (iRet != 0)
 	{
-		printf("Couldn't open input stream. avformat_open_input = %d \n", iRet);
-		return -1;
+		char strerror_buf[1024];
+		av_strerror(iRet, strerror_buf, 1024);
+		printf("Couldn't open input stream. avformat_open_input = %d error = %s\n", iRet,strerror_buf);
+		return ERROR_CONNECTION_FAILED;
 	}
 
 
@@ -121,7 +141,7 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	if (avformat_find_stream_info(pDecoder->pFormatCtx, NULL) < 0)
 	{
 		fprintf(stderr, "Cannot find input stream information.\n");
-		return -1;
+		return ERROR_NO_STREAM_INFO;
 	}
 
 	/* find the video stream information */
@@ -129,26 +149,26 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	if (ret < 0)
 	{
 		fprintf(stderr, "Cannot find a video stream in the input file\n");
-		return -1;
+		return ERROR_NO_VIDEO_STREAM;
 	}
 	pDecoder->videoindex = ret;
 
 
 	if (!(pDecoder->pCodecCtx = avcodec_alloc_context3(pDecoder->pCodec)))
 	{
-		return AVERROR(ENOMEM);
+		return ERROR_NO_MEMORY;//AVERROR(ENOMEM)
 	}
 
 	AVStream* video = pDecoder->pFormatCtx->streams[pDecoder->videoindex];
 	if (avcodec_parameters_to_context(pDecoder->pCodecCtx, video->codecpar) < 0)
 	{
-		return -1;
+		return ERROR_AV_CODEC;
 	}
 
 	if ((ret = avcodec_open2(pDecoder->pCodecCtx, pDecoder->pCodec, NULL)) < 0)
 	{
 		fprintf(stderr, "Failed to open codec for stream #%u\n", pDecoder->videoindex);
-		return -1;
+		return ERROR_AV_CODEC;
 	}
 
 
@@ -175,10 +195,13 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 int VWStream::ReadFrame(AVPacket *pPacket)
 {
 	AVPacket* packet;
-	//packet = (AVPacket *)av_malloc(sizeof(AVPacket));
 	packet = pPacket;
 
-	av_packet_unref(packet);
+	if (NULL != pPacket->buf)
+	{
+		av_packet_unref(packet);
+	}
+	
 
 	VideoDecoder* pDecoder = &m_Decoder;
 
@@ -188,6 +211,9 @@ int VWStream::ReadFrame(AVPacket *pPacket)
 	{
 		//Unlock
 		SDL_UnlockMutex(pDecoder->BufferLock);
+
+		printf("VWStream ReadFrame Warning: No package, Head = %d, HeadCatchEnd = %d\r\n", pDecoder->Buffer_Head, pDecoder->HeadCatchEnd);
+
 		return ERROR_NO_MORE_DATA;
 	}
 
@@ -208,6 +234,15 @@ int VWStream::ReadFrame(AVPacket *pPacket)
 }
 int VWStream::Close(void)
 {
+	m_Decoder.ReadFram_Thread_Exit = true;
+
+	for (int i = 0; i < gi_Buffer_Size; i++)
+	{
+		if (NULL != m_Decoder.Package_Buffer[i].buf)
+		{
+			av_packet_unref(&(m_Decoder.Package_Buffer[i]));
+		}
+	}
 	return 0;
 }
 int VWStream::Destruct(void)
