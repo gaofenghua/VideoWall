@@ -39,8 +39,7 @@ int ReadFrame_Thread(void *opaque)
 				pDecoder->Buffer_Head = (pDecoder->Buffer_Head + 1 >= gi_Buffer_Size) ? 0 : pDecoder->Buffer_Head + 1;
 			}
 
-			//av_copy_packet(&(pDecoder->Package_Buffer[pDecoder->Buffer_End]), pDecoder->packet);
-			//av_free_packet(pDecoder->packet);
+			av_packet_unref(&(pDecoder->Package_Buffer[pDecoder->Buffer_End]));
 			av_packet_ref(&(pDecoder->Package_Buffer[pDecoder->Buffer_End]), pDecoder->packet);
 			av_packet_unref(pDecoder->packet);
 
@@ -168,7 +167,7 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	av_dump_format(pDecoder->pFormatCtx, 0, m_URL.data(), 0);
 	printf("-------------------------------------------------\n");
 
-	Init_BitStream_Filter();
+	//Init_BitStream_Filter();
 
 	SDL_Thread *p = SDL_CreateThread(ReadFrame_Thread, NULL, (void*)this);
 }
@@ -178,6 +177,8 @@ int VWStream::ReadFrame(AVPacket *pPacket)
 	AVPacket* packet;
 	//packet = (AVPacket *)av_malloc(sizeof(AVPacket));
 	packet = pPacket;
+
+	av_packet_unref(packet);
 
 	VideoDecoder* pDecoder = &m_Decoder;
 
@@ -202,12 +203,6 @@ int VWStream::ReadFrame(AVPacket *pPacket)
 
 	//Unlock
 	SDL_UnlockMutex(pDecoder->BufferLock);
-
-
-	//av_packet_unref(packet);
-	av_packet_free(&packet);
-
-	printf("Software decode and render thread exit. di = \r\n");
 
 	return 0;
 }
@@ -245,7 +240,7 @@ void VWStream::WriteOutputFile(AVPacket *packet)
 {
 	if (packet->flags == 1)
 	{
-		//fwrite(m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->extradata, 1, m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->extradata_size, fp);
+		fwrite(m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->extradata, 1, m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->extradata_size, fp);
 	}
 	
 	fwrite(packet->data, packet->size, 1, fp);
