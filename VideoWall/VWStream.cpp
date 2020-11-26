@@ -91,6 +91,9 @@ int VWStream::CleanUP()
 		avformat_free_context(pDecoder->pFormatCtx);
 		pDecoder->pFormatCtx = NULL;
 	}
+
+	avcodec_free_context(&(pDecoder->pCodecCtx));
+
 	return true;
 }
 
@@ -114,9 +117,6 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 
 	VideoDecoder *pDecoder = &(m_Decoder);
 
-	//pDecoder->pFilepath = new char[strlen(path) + 1];
-	//memcpy(pDecoder->pFilepath, path, strlen(path) + 1);
-
 	pDecoder->pFormatCtx = avformat_alloc_context();
 
 	AVDictionary* options = NULL;
@@ -128,6 +128,9 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 
 	//int iRet = avformat_open_input(&(pDecoder->pFormatCtx), pDecoder->pFilepath, iformat, &options);
 	int iRet = avformat_open_input(&(pDecoder->pFormatCtx), m_URL.data(), iformat, &options);
+	
+	av_dict_free(&options);
+
 	if (iRet != 0)
 	{
 		char strerror_buf[1024];
@@ -243,6 +246,9 @@ int VWStream::Close(void)
 			av_packet_unref(&(m_Decoder.Package_Buffer[i]));
 		}
 	}
+
+	CleanUP();
+
 	return 0;
 }
 int VWStream::Destruct(void)
