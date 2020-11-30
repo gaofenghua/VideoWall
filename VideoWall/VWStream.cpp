@@ -35,7 +35,7 @@ int ReadFrame_Thread(void *opaque)
 			if (pDecoder->Buffer_Head == pDecoder->Buffer_End && !pDecoder->HeadCatchEnd) // read too fast
 			{
 				//Throw one package
-				pDecoder->Buffer_Head = (pDecoder->Buffer_Head + 1 >= gi_Buffer_Size) ? 0 : pDecoder->Buffer_Head + 1;
+				pDecoder->Buffer_Head = (pDecoder->Buffer_Head + 1 >= VWStream::gi_Buffer_Size) ? 0 : pDecoder->Buffer_Head + 1;
 
 				printf("Read Frame Warnning: Throw one package, Head=End = %d, HeadCatchEnd = %d\r\n", pDecoder->Buffer_Head, pDecoder->HeadCatchEnd);
 			}
@@ -47,7 +47,7 @@ int ReadFrame_Thread(void *opaque)
 			av_packet_ref(&(pDecoder->Package_Buffer[pDecoder->Buffer_End]), pDecoder->packet);
 			av_packet_unref(pDecoder->packet);
 
-			pDecoder->Buffer_End = (pDecoder->Buffer_End + 1 >= gi_Buffer_Size) ? 0 : pDecoder->Buffer_End + 1;
+			pDecoder->Buffer_End = (pDecoder->Buffer_End + 1 >= VWStream::gi_Buffer_Size) ? 0 : pDecoder->Buffer_End + 1;
 
 			if (pDecoder->Buffer_Head == -1) // initial first package
 			{

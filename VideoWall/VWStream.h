@@ -26,10 +26,6 @@ extern "C"
 
 
 
-//Global data
-const int gi_Buffer_Size = 100;
-
-
 class VWStream
 {
 	public:
@@ -48,6 +44,9 @@ class VWStream
 		void PrintStatus();
 	
 	public:
+		//Global data
+		const static int gi_Buffer_Size = 100;
+
 		struct VideoDecoder
 		{
 			//ffmpeg
