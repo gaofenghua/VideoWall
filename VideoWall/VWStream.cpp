@@ -66,7 +66,11 @@ int ReadFrame_Thread(void *opaque)
 		}
 	}
 
-	printf("Read Threat %d: Loop ends -------------------------------- buffer head = %d, end = %d\r\n", pStreamObj->m_CameraID, pDecoder->Buffer_Head, pDecoder->Buffer_End);
+	av_packet_free(&(pDecoder->packet));
+	pDecoder->ReadFram_Thread_Exit = false;
+	pDecoder->pReadFrame_Thread = NULL;
+
+	printf("Read Threat %d: Loop ends.  buffer head = %d, end = %d\r\n", pStreamObj->m_CameraID, pDecoder->Buffer_Head, pDecoder->Buffer_End);
 
 	return 0;
 }
@@ -113,7 +117,7 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	m_CameraID = nCameraID;
 	m_URL = sURL;
 
-	av_log_set_level(AV_LOG_DEBUG);
+	av_log_set_level(AV_LOG_QUIET);
 
 	VideoDecoder *pDecoder = &(m_Decoder);
 
@@ -135,7 +139,7 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	{
 		char strerror_buf[1024];
 		av_strerror(iRet, strerror_buf, 1024);
-		printf("Couldn't open input stream. avformat_open_input = %d error = %s\n", iRet,strerror_buf);
+		//printf("Couldn't open input stream. avformat_open_input = %d error = %s\n", iRet,strerror_buf);
 		return ERROR_CONNECTION_FAILED;
 	}
 
@@ -143,7 +147,7 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 
 	if (avformat_find_stream_info(pDecoder->pFormatCtx, NULL) < 0)
 	{
-		fprintf(stderr, "Cannot find input stream information.\n");
+		//fprintf(stderr, "Cannot find input stream information.\n");
 		return ERROR_NO_STREAM_INFO;
 	}
 
@@ -151,7 +155,7 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	int ret = av_find_best_stream(pDecoder->pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &(pDecoder->pCodec), 0);
 	if (ret < 0)
 	{
-		fprintf(stderr, "Cannot find a video stream in the input file\n");
+		//fprintf(stderr, "Cannot find a video stream in the input file\n");
 		return ERROR_NO_VIDEO_STREAM;
 	}
 	pDecoder->videoindex = ret;
@@ -170,7 +174,7 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 
 	if ((ret = avcodec_open2(pDecoder->pCodecCtx, pDecoder->pCodec, NULL)) < 0)
 	{
-		fprintf(stderr, "Failed to open codec for stream #%u\n", pDecoder->videoindex);
+		//fprintf(stderr, "Failed to open codec for stream #%u\n", pDecoder->videoindex);
 		return ERROR_AV_CODEC;
 	}
 
@@ -185,14 +189,14 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 	////pDecoder->img_convert_ctx = sws_getContext(pDecoder->pCodecCtx->width, pDecoder->pCodecCtx->height, pDecoder->pCodecCtx->pix_fmt, pDecoder->pCodecCtx->width, pDecoder->pCodecCtx->height, AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
 	//pDecoder->img_convert_ctx = sws_getContext(pDecoder->pCodecCtx->width, pDecoder->pCodecCtx->height, pDecoder->pCodecCtx->pix_fmt, 270, 180, AV_PIX_FMT_YUV420P, SWS_BICUBIC, NULL, NULL, NULL);
 
-	//Output Info-----------------------------
-	printf("--------------- File Information ----------------\n");
-	av_dump_format(pDecoder->pFormatCtx, 0, m_URL.data(), 0);
-	printf("-------------------------------------------------\n");
+	////Output Info-----------------------------
+	//printf("--------------- File Information ----------------\n");
+	//av_dump_format(pDecoder->pFormatCtx, 0, m_URL.data(), 0);
+	//printf("-------------------------------------------------\n");
 
 	//Init_BitStream_Filter();
 
-	SDL_Thread *p = SDL_CreateThread(ReadFrame_Thread, NULL, (void*)this);
+	m_Decoder.pReadFrame_Thread = SDL_CreateThread(ReadFrame_Thread, NULL, (void*)this);
 }
 
 int VWStream::ReadFrame(AVPacket *pPacket)
@@ -215,7 +219,7 @@ int VWStream::ReadFrame(AVPacket *pPacket)
 		//Unlock
 		SDL_UnlockMutex(pDecoder->BufferLock);
 
-		printf("VWStream ReadFrame Warning: No package, Head = %d, HeadCatchEnd = %d\r\n", pDecoder->Buffer_Head, pDecoder->HeadCatchEnd);
+		//printf("VWStream ReadFrame Warning: No package, Head = %d, HeadCatchEnd = %d\r\n", pDecoder->Buffer_Head, pDecoder->HeadCatchEnd);
 
 		return ERROR_NO_MORE_DATA;
 	}
@@ -237,7 +241,17 @@ int VWStream::ReadFrame(AVPacket *pPacket)
 }
 int VWStream::Close(void)
 {
-	m_Decoder.ReadFram_Thread_Exit = true;
+	if (m_Decoder.pReadFrame_Thread != NULL)
+	{
+		m_Decoder.ReadFram_Thread_Exit = true;
+		Sleep(100);
+	}
+
+	while (m_Decoder.ReadFram_Thread_Exit == true)
+	{
+		printf("Wait for close...\n");
+		Sleep(100);
+	}
 
 	for (int i = 0; i < gi_Buffer_Size; i++)
 	{
@@ -253,6 +267,8 @@ int VWStream::Close(void)
 }
 int VWStream::Destruct(void)
 {
+	Close();
+
 	return 0;
 }
 int VWStream::SetURL(int nCameraID, std::string sURL)

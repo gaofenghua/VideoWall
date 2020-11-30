@@ -81,6 +81,7 @@ class VWStream
 			//Commanding parameter
 			//Thread
 			bool ReadFram_Thread_Exit = false;
+			SDL_Thread * pReadFrame_Thread = NULL;
 
 			bool Decoding_Thread_Exit = false;
 

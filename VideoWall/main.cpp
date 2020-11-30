@@ -9,33 +9,73 @@ using namespace std;
 
 void Test_ReadFrame()
 {
+	int nChannel = 0;
+	string sUrl;
+
+	int nPackages;
+	char sYes;
+
+	cout << "Please input Channel id number like 0, 1, 2 ... \n  Channel ID = ";
+	cin >> nChannel;
+
+	cout << "Please input Packages to receive like 0, 1, 2 ...\n  Packages = ";
+	cin >> nPackages;
+
+
+	DataManager dm;
+	sUrl = dm.GetCameraRtsp(nChannel);
+
+	cout << "\nStart y/n?  ";
+	cin >> sYes;
+
+	if (sYes != 'y')
+	{
+		cout << "\nAbort.\n";
+		return;
+	}
+
+	int nRet = 0;
 	VWStream stm;
-	//VWStream stm2;
-	stm.Connect(1, "rtsp://root:pass@172.20.76.100/axis-media/media.amp?videocodec=h264");
+	//nRet = stm.Connect(1, "rtsp://root:pass@172.20.76.100/axis-media/media.amp?videocodec=h264");
 	//stm.Connect(1, "e:\\temp\\test.mp4");
 	//stm.Connect(1, "rtsp://192.168.77.211:50010/live?camera=1&user=admin&pass=A1crUF4%3D&stream=1");
+	
+	nRet = stm.Connect(nChannel, sUrl);
+	if (nRet < 0)
+	{
+		cout << "Connect failed. ret = " << nRet;
+		return;
+	}
 
 	AVPacket* packet;
 	packet = av_packet_alloc();
 
-	for (int i = 0; i < 100000; i++)
+	for (int i = 0; true; i++)
 	{
+		if (nPackages != 0)
+		{
+			if (i >= nPackages)
+			{
+				break;
+			}
+		}
+
 		stm.ReadFrame(packet);
 		stm.WriteOutputFile(packet);
+		cout << "Read packet " << i+1 << endl;
 		
-		i = i - 1; //long time test
-
-		Sleep(30);
+		Sleep(40);
 	}
 
 	av_packet_free(&packet);
-	stm.m_Decoder.ReadFram_Thread_Exit = true;
+	stm.Close();
+
+	printf("\nReadFrame test finished.\n");
 }
 
 
 int main(int argc, char* args[])
 {
-	printf("Testing function begins:\n");
 
 	//DataManager dm;
 

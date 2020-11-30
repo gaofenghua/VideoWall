@@ -1,4 +1,4 @@
-avms_server_ip = "192.168.76.223"
+avms_server_ip = "192.168.77.211"
 avms_server_port = 50010
 avms_server_username = "admin"
 avms_server_password = "A1crUF4%3D"
