@@ -29,7 +29,17 @@ DataManager::DataManager()
 
 	GlobalResourceInitial();
 }
-
+DataManager::~DataManager()
+{
+	for (int i = 0; i < 6; i++)
+	{
+		if (m_ChannelFile[i] != NULL)
+		{
+			delete m_ChannelFile[i];
+			m_ChannelFile[i] = NULL;
+		}
+	}
+}
 void DataManager::GlobalResourceInitial()
 {
 	avformat_network_init();
@@ -85,15 +95,15 @@ int DataManager::ReadConfigFile()
 		cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
 	}
 
-	try
-	{
-		m_ScreenNumber = vw_config.lookup("screen_number");
-	}
-	catch (const SettingNotFoundException &nfex)
-	{
-		cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
-	}
-	m_Channels.resize(m_ScreenNumber);
+	//try
+	//{
+	//	m_ScreenNumber = vw_config.lookup("screen_number");
+	//}
+	//catch (const SettingNotFoundException &nfex)
+	//{
+	//	cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
+	//}
+	//m_Channels.resize(m_ScreenNumber);
 
 	try
 	{
@@ -104,28 +114,48 @@ int DataManager::ReadConfigFile()
 		cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
 	}
 		
-	for (int i = 0; i < m_ScreenNumber; i++)
+	//for (int i = 0; i < m_ScreenNumber; i++)
+	//{
+	//	try
+	//	{
+	//		string parameterName = "channels_" + to_string(i);
+	//		const Setting &vw_channels = vw_config.lookup(parameterName);
+	//		int nLength = vw_channels.getLength();
+
+	//		m_Channels[i].resize(nLength);
+	//		for (int j = 0; j < nLength; j++)
+	//		{
+	//			m_Channels[i][j] = vw_channels[j];
+	//			//printf("%d\r\n", m_Channels[i][j]);
+	//		}
+
+	//	}
+	//	catch (const SettingNotFoundException &nfex)
+	//	{
+	//		cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
+	//	}
+	//}
+
+	for (int i = 0; i < 6; i++)
 	{
+		string parameterName = "channels_" + to_string(i);
 		try
 		{
-			string parameterName = "channels_" + to_string(i);
-			const Setting &vw_channels = vw_config.lookup(parameterName);
-			int nLength = vw_channels.getLength();
+			string filename = vw_config.lookup(parameterName);
 
-			m_Channels[i].resize(nLength);
-			for (int j = 0; j < nLength; j++)
-			{
-				m_Channels[i][j] = vw_channels[j];
-				//printf("%d\r\n", m_Channels[i][j]);
-			}
-
+			int nNameSize = filename.length();
+			char *pNameBuf = new char[nNameSize];
+			strcpy(pNameBuf, filename.c_str());
+			m_ChannelFile[i] = pNameBuf;
 		}
 		catch (const SettingNotFoundException &nfex)
 		{
-			cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
+			//cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
 		}
 	}
 
+	m_Channels.resize(6);
+	ReadChannelsFile(m_ChannelFile[0]);
 
 	return 0;
 }
@@ -211,12 +241,12 @@ void DataManager::WriteFile()
 	outFile.close();
 }
 
-void DataManager::ReadFile()
+void DataManager::ReadChannelsFile(char *pFileName)
 {
 	string s;
 	char buffer[256];
 	ifstream inFile;
-	inFile.open("./channels_0.txt", ios::in | ios::binary );
+	inFile.open(pFileName, ios::in | ios::binary );
 
 	if (false == inFile.is_open())
 	{

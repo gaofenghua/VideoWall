@@ -4,7 +4,7 @@ avms_server_username = "admin"
 avms_server_password = "A1crUF4%3D"
 
 switch_interval = 30
-screen_number = 2
+
 view_number = 16
 
 /* Channel group 0 is for screen 0, channel group 1 is for screen 1, 
@@ -12,5 +12,6 @@ view_number = 16
 */
 channels_0 = "channels_0.txt"
 channels_1 = "channels_1.txt"
+channels_3 = "channels_3.txt"
 
 

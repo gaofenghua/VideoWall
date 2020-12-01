@@ -11,7 +11,8 @@ class DataManager
 {
 	public:
 		DataManager();
-		
+		~DataManager();
+
 		int GetScreenView(int t_ScreenID); // return the number of views
 		int GetViewChannel(int t_ViewID); // return the number of channels
 		int GetSwitchInterval(void); // return the switch interval
@@ -32,10 +33,12 @@ class DataManager
 		std::string m_PassWord = "####";
 
 		int m_SwitchInterval = -1;
-		int m_ScreenNumber = 1;
+		int m_ScreenNumber = 6;
 		int m_ViewNumber = 16;
 
-		int m_ChannelGroupNumber = 1;
+		char* m_ChannelFile[6] = {NULL,NULL,NULL,NULL,NULL,NULL};
+
+		//int m_ChannelGroupNumber = 1;
 		std::vector<std::vector<int> > m_Channels;
 
 		int ReadConfigFile(void);
@@ -46,7 +49,7 @@ class DataManager
 		bool validateIP(std::string ip);
 
 	public:
-		void ReadFile(void);
+		void ReadChannelsFile(char *pFileName);
 		void WriteFile(void);
 		void GlobalResourceInitial();
 		void GlobalResourceCleanUp();
