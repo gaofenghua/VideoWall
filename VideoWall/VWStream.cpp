@@ -214,15 +214,46 @@ int VWStream::ReadFrame(AVPacket *pPacket)
 
 	SDL_LockMutex(pDecoder->BufferLock);
 
-	if (pDecoder->Buffer_Head == -1 || (pDecoder->Buffer_Head == pDecoder->Buffer_End && pDecoder->HeadCatchEnd))
+	if (ReadType == Instant)
 	{
-		//Unlock
-		SDL_UnlockMutex(pDecoder->BufferLock);
+		if (pDecoder->Buffer_Head == -1 || (pDecoder->Buffer_Head == pDecoder->Buffer_End && pDecoder->HeadCatchEnd))
+		{
+			//Unlock
+			SDL_UnlockMutex(pDecoder->BufferLock);
 
-		//printf("VWStream ReadFrame Warning: No package, Head = %d, HeadCatchEnd = %d\r\n", pDecoder->Buffer_Head, pDecoder->HeadCatchEnd);
+			//printf("VWStream ReadFrame Warning: No package, Head = %d, HeadCatchEnd = %d\r\n", pDecoder->Buffer_Head, pDecoder->HeadCatchEnd);
 
-		return ERROR_NO_MORE_DATA;
+			return ERROR_NO_MORE_DATA;
+		}
 	}
+	else if (ReadType == Wait)
+	{
+		int nWaitTimes = 1000;
+
+		while (nWaitTimes >= 0 && ( pDecoder->Buffer_Head == -1 || (pDecoder->Buffer_Head == pDecoder->Buffer_End && pDecoder->HeadCatchEnd)))
+		{
+			//Unlock
+			SDL_UnlockMutex(pDecoder->BufferLock);
+
+			//printf("VWStream ReadFrame Warning: No package, Wait. Countdown = %d,   Head = %d, HeadCatchEnd = %d\r\n", nWaitTimes, pDecoder->Buffer_Head, pDecoder->HeadCatchEnd);
+			Sleep(20);
+
+			SDL_LockMutex(pDecoder->BufferLock);
+
+			nWaitTimes--;
+		}
+
+		if (nWaitTimes < 0)
+		{
+			//Unlock
+			SDL_UnlockMutex(pDecoder->BufferLock);
+
+			printf("VWStream ReadFrame Warning: No package, Head = %d, HeadCatchEnd = %d\r\n", pDecoder->Buffer_Head, pDecoder->HeadCatchEnd);
+
+			return ERROR_NO_MORE_DATA;
+		}
+	}
+
 
 	av_packet_ref(packet, &(pDecoder->Package_Buffer[pDecoder->Buffer_Head]));
 	av_packet_unref(&(pDecoder->Package_Buffer[pDecoder->Buffer_Head]));

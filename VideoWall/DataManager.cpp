@@ -54,6 +54,7 @@ void DataManager::GlobalResourceCleanUp()
 int DataManager::ReadConfigFile()
 {
 	Config vw_config;
+	int nRet;
 
 	try
 	{
@@ -62,13 +63,13 @@ int DataManager::ReadConfigFile()
 	catch (const FileIOException &fioex)
 	{
 		std::cerr << "I/O error while reading file." << std::endl;
-		return(EXIT_FAILURE);
+		return(ERROR_CONFIG_FILE_MISSING);
 	}
 	catch (const ParseException &pex)
 	{
 		std::cerr << "Parse error at " << pex.getFile() << ":" << pex.getLine()
 			<< " - " << pex.getError() << std::endl;
-		return(EXIT_FAILURE);
+		return(ERROR_CONFIGURATION_FORMAT_UNKNOW);
 	}
 
 	try
@@ -144,7 +145,7 @@ int DataManager::ReadConfigFile()
 			string filename = vw_config.lookup(parameterName);
 
 			int nNameSize = filename.length();
-			char *pNameBuf = new char[nNameSize];
+			char *pNameBuf = new char[nNameSize + 1];
 			strcpy(pNameBuf, filename.c_str());
 			m_ChannelFile[i] = pNameBuf;
 		}
@@ -155,7 +156,18 @@ int DataManager::ReadConfigFile()
 	}
 
 	m_Channels.resize(6);
-	ReadChannelsFile(m_ChannelFile[0]);
+	for (int i = 0; i < 6; i++)
+	{
+		if (m_ChannelFile[i] != NULL)
+		{
+			nRet = ReadChannelsFile(m_ChannelFile[i]);
+			if (nRet != 0)
+			{
+				return nRet;
+			}
+		}
+	}
+	
 
 	return 0;
 }
@@ -204,7 +216,7 @@ string DataManager::GetCameraRtsp(int t_CameraID)
 {
 	if (m_Status != 0)
 	{
-		return nullptr;
+		return "";
 	}
 	//g_CameraList[0].path = "rtsp://192.168.31.223:50010/live?camera=30&user=admin&pass=A1crUF4%3D&stream=3"; 
 	string sUrl = "rtsp://";
@@ -241,7 +253,7 @@ void DataManager::WriteFile()
 	outFile.close();
 }
 
-void DataManager::ReadChannelsFile(char *pFileName)
+int DataManager::ReadChannelsFile(char *pFileName)
 {
 	string s;
 	char buffer[256];
@@ -250,21 +262,34 @@ void DataManager::ReadChannelsFile(char *pFileName)
 
 	if (false == inFile.is_open())
 	{
-		return;
+		return ERROR_CHANNELSFILE_MISSING;
 	}
 
-	cout << "com.txt" << " 的内容如下:" << endl;
 	while (!inFile.eof())
 	{
-		//inFile.getline(buffer, 256, '\n');//getline(char *,int,char) 表示该行字符达到256个或遇到换行就结束
-		//cout << buffer << endl;
-
 		getline(inFile,s);
 		
 		cout << s << endl;
+		if (s == "")
+		{
+			continue;
+		}
+
+		try
+		{
+			int nChannel = stoi(s);
+		}
+		catch (...) 
+		{
+			cout << "Caught Invalid Argument Exception\n";
+			
+			inFile.close();
+			return ERROR_CHANNELSFILE_DATA_NOT_NUMBER;
+		}
+		
 	}
 	inFile.close();
-
+	return 0;
 }
 
 // check if the given string is a numeric string or not

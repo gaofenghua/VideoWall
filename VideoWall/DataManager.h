@@ -4,8 +4,13 @@
 #include <Windows.h>
 
 #define DATAMANAGER_ERROR	0
-#define ERROR_CONFIGURATION_SETTING_MISSING		DATAMANAGER_ERROR-1
-#define ERROR_IP_FORMAT							DATAMANAGER_ERROR-2
+
+#define ERROR_CONFIG_FILE_MISSING				DATAMANAGER_ERROR-1
+#define ERROR_CONFIGURATION_FORMAT_UNKNOW		DATAMANAGER_ERROR-2
+#define ERROR_CONFIGURATION_SETTING_MISSING		DATAMANAGER_ERROR-3
+#define ERROR_IP_FORMAT							DATAMANAGER_ERROR-4
+#define ERROR_CHANNELSFILE_MISSING				DATAMANAGER_ERROR-5
+#define ERROR_CHANNELSFILE_DATA_NOT_NUMBER		DATAMANAGER_ERROR-6
 
 class DataManager
 {
@@ -49,7 +54,7 @@ class DataManager
 		bool validateIP(std::string ip);
 
 	public:
-		void ReadChannelsFile(char *pFileName);
+		int ReadChannelsFile(char *pFileName);
 		void WriteFile(void);
 		void GlobalResourceInitial();
 		void GlobalResourceCleanUp();

@@ -65,11 +65,12 @@ void Test_ReadFrame()
 			}
 		}
 
+		cout << "Read packet " << i + 1 << endl;
 		stm.ReadFrame(packet);
 		stm.WriteOutputFile(packet);
-		cout << "Read packet " << i+1 << endl;
 		
-		Sleep(40);
+		
+		//Sleep(40);
 	}
 
 	av_packet_free(&packet);
@@ -88,8 +89,8 @@ int main(int argc, char* args[])
 
 	//dm.GlobalResourceCleanUp();
 
-	//Test_ReadFrame();
-	Test_DataManager();
+	Test_ReadFrame();
+	//Test_DataManager();
 
 	getchar();
 	

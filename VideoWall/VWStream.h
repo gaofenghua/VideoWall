@@ -44,6 +44,7 @@ class VWStream
 		void PrintStatus();
 	
 	public:
+		enum {Instant, Wait} ReadType = Wait;
 		//Global data
 		const static int gi_Buffer_Size = 100;
 
