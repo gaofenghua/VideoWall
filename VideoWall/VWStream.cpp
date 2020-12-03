@@ -37,7 +37,7 @@ int ReadFrame_Thread(void *opaque)
 				//Throw one package
 				pDecoder->Buffer_Head = (pDecoder->Buffer_Head + 1 >= VWStream::gi_Buffer_Size) ? 0 : pDecoder->Buffer_Head + 1;
 
-				printf("Read Frame Warnning: Throw one package, Head=End = %d, HeadCatchEnd = %d\r\n", pDecoder->Buffer_Head, pDecoder->HeadCatchEnd);
+				//printf("Read Frame Warnning: Throw one package, Head=End = %d, HeadCatchEnd = %d\r\n", pDecoder->Buffer_Head, pDecoder->HeadCatchEnd);
 			}
 
 			if (NULL != (pDecoder->Package_Buffer[pDecoder->Buffer_End]).buf)
@@ -328,7 +328,7 @@ void VWStream::WriteOutputFile(AVPacket *packet)
 {
 	if (packet->flags == 1)
 	{
-		fwrite(m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->extradata, 1, m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->extradata_size, fp);
+		//fwrite(m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->extradata, 1, m_Decoder.pFormatCtx->streams[m_Decoder.videoindex]->codecpar->extradata_size, fp);
 	}
 	
 	fwrite(packet->data, packet->size, 1, fp);
