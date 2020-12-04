@@ -327,3 +327,55 @@ bool DataManager::validateIP(string ip)
 	}
 	return true;
 }
+
+BOOL CALLBACK EnumMonitor(HMONITOR handle, HDC hdc, LPRECT rect, LPARAM param) {
+	MONITORINFOEX mi;
+	mi.cbSize = sizeof(mi);
+	GetMonitorInfo(handle, &mi);
+	std::cout << "is MONITORINFOF_PRIMARY:" << mi.dwFlags << std::endl;
+	std::cout << "width:" << (mi.rcMonitor.right - mi.rcMonitor.left) << std::endl;
+	std::cout << "height" << (mi.rcMonitor.bottom - mi.rcMonitor.top) << std::endl;
+	return true;
+
+}
+
+BOOL CALLBACK DataManager::EnumMonitor(HMONITOR handle, HDC hdc, LPRECT rect, LPARAM param)
+//void DataManager::EnumMonitor(LPVOID)
+{
+	handle = (HMONITOR)this;
+
+	DataManager *pm = (DataManager*)rect;
+	pm->m_nTotalMonitor = 100;
+
+	//m_nTotalMonitor = 99;
+
+	MONITORINFOEX mi;
+	mi.cbSize = sizeof(mi);
+	GetMonitorInfo(handle, &mi);
+	std::cout << "is MONITORINFOF_PRIMARY:" << mi.dwFlags << std::endl;
+	std::cout << "width:" << (mi.rcMonitor.right - mi.rcMonitor.left) << std::endl;
+	std::cout << "height" << (mi.rcMonitor.bottom - mi.rcMonitor.top) << std::endl;
+	std::cout << "this = " << this << endl;
+	return true;
+
+}
+
+void DataManager::QueryMonitorSettings()
+{
+	m_nTotalMonitor = GetSystemMetrics(SM_CMONITORS);
+
+	union
+	{
+		//BOOL(CALLBACK *FUNC)(HMONITOR handle, HDC hdc, LPRECT rect, LPARAM param);
+		MONITORENUMPROC FUNC;
+		BOOL(CALLBACK DataManager::*EnumMonitor)(HMONITOR handle, HDC hdc, LPRECT rect, LPARAM param);
+	} _proc;
+	_proc.EnumMonitor = &DataManager::EnumMonitor;
+
+	// 枚举当前的所有显示器
+	//EnumDisplayMonitors(NULL, NULL, &DataManager::EnumMonitor, (LPARAM)this);
+	EnumDisplayMonitors(NULL, NULL, _proc.FUNC, (LPARAM)this);
+	//EnumDisplayMonitors(NULL, NULL, ::EnumMonitor, (LPARAM)this);
+	std::cout << "QueryMonitorSettings this = " << this << endl;
+	getchar();
+}

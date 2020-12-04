@@ -79,17 +79,84 @@ void Test_ReadFrame()
 	printf("\nReadFrame test finished.\n");
 }
 
+void GetScreenRect(int ScreenNo)
+{
+	RECT m_ScrRect[2];
+
+	BOOL flag;
+	DISPLAY_DEVICE dd;
+	ZeroMemory(&dd, sizeof(dd));
+	dd.cb = sizeof(dd);
+	flag = EnumDisplayDevices(NULL, ScreenNo, &dd, 0);
+	if (!flag) return;
+
+	DISPLAY_DEVICE dd2;
+	ZeroMemory(&dd2, sizeof(dd2));
+	dd2.cb = sizeof(dd2);
+	flag = EnumDisplayDevices(dd.DeviceName, 0, &dd2, 0);
+	if (!flag) return;
+
+	DEVMODE dm;
+	ZeroMemory(&dm, sizeof(dm));
+	dm.dmSize = sizeof(dm);
+	flag = EnumDisplaySettings(dd.DeviceName, ENUM_CURRENT_SETTINGS, &dm);
+	m_ScrRect[ScreenNo].left = dm.dmPosition.x;
+	m_ScrRect[ScreenNo].top = dm.dmPosition.y;
+	m_ScrRect[ScreenNo].right = dm.dmPelsWidth;
+	m_ScrRect[ScreenNo].bottom = dm.dmPelsHeight;
+}
+
+void test()
+{
+	char szSaveDeviceName[32];
+
+	DISPLAY_DEVICE dd;
+	ZeroMemory(&dd, sizeof(dd));
+	dd.cb = sizeof(DISPLAY_DEVICE);
+
+	DWORD deviceNum = 0;
+	while (EnumDisplayDevices(NULL, deviceNum, &dd, 0))
+	{
+		
+
+		//DumpDevice(dd, 0);
+		DISPLAY_DEVICE newdd = { 0 };
+		ZeroMemory(&newdd, sizeof(newdd));
+		newdd.cb = sizeof(DISPLAY_DEVICE);
+		DWORD monitorNum = 0;
+		while (EnumDisplayDevices(dd.DeviceName, monitorNum, &newdd, 0))
+		{
+			//DumpDevice(newdd, 4);
+			monitorNum++;
+		}
+		puts("");
+		deviceNum++;
+	}
+	//DISPLAY_DEVICE_ATTACHED_TO_DESKTOP
+
+	//EnumDisplayMonitors();
+}
+
+
 
 int main(int argc, char* args[])
 {
-
+	DataManager dm;
+	dm.QueryMonitorSettings();
 	//DISPLAY_DEVICE device = { 0 };
 	//EnumDisplayDevices();
 	
 
+	//int s = GetSystemMetrics(SM_CMONITORS);
+	//GetScreenRect(0);
+	//test();
+	//std::cout << "numbers:" << GetSystemMetrics(SM_CMONITORS) << std::endl;
+	//// 枚举当前的所有显示器
+	//EnumDisplayMonitors(NULL, NULL, EnumMonitor, NULL);
+
 	//dm.GlobalResourceCleanUp();
 
-	Test_ReadFrame();
+	//Test_ReadFrame();
 	//Test_DataManager();
 
 	getchar();

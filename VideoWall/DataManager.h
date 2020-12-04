@@ -52,6 +52,12 @@ class DataManager
 		bool chkNumber(std::string& str);
 		std::vector<std::string> split(std::string& str, char delim);
 		bool validateIP(std::string ip);
+public:
+		int m_nTotalMonitor = 0;
+		MONITORINFOEX* m_MonitorInfo = NULL;
+		void QueryMonitorSettings();
+		BOOL CALLBACK EnumMonitor(HMONITOR handle, HDC hdc, LPRECT rect, LPARAM param);
+		//void EnumMonitor(LPVOID);
 
 	public:
 		int ReadChannelsFile(char *pFileName);
