@@ -57,7 +57,6 @@ public:
 		MONITORINFOEX* m_MonitorInfo = NULL;
 		void QueryMonitorSettings();
 		BOOL CALLBACK EnumMonitor(HMONITOR handle, HDC hdc, LPRECT rect, LPARAM param);
-		//void EnumMonitor(LPVOID);
 
 	public:
 		int ReadChannelsFile(char *pFileName);
