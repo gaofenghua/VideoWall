@@ -30,6 +30,8 @@ void Test_ReadFrame()
 	DataManager dm;
 	sUrl = dm.GetCameraRtsp(nChannel);
 
+	cout << "GetCameraRtsp: nChannel = " << nChannel << " url = " << sUrl << endl;
+
 	cout << "\nStart y/n?  ";
 	cin >> sYes;
 
@@ -43,12 +45,13 @@ void Test_ReadFrame()
 	VWStream stm;
 	//nRet = stm.Connect(1, "rtsp://root:pass@172.20.76.100/axis-media/media.amp?videocodec=h264");
 	//stm.Connect(1, "e:\\temp\\test.mp4");
-	//stm.Connect(1, "rtsp://192.168.77.211:50010/live?camera=1&user=admin&pass=A1crUF4%3D&stream=1");
+	//nRet = stm.Connect(1, "rtsp://192.168.77.211:50010/live?camera=1&user=admin&pass=A1crUF4%3D&stream=1");
 	
 	nRet = stm.Connect(nChannel, sUrl);
 	if (nRet < 0)
 	{
-		cout << "Connect failed. ret = " << nRet;
+		cout << "Connect failed. ret = " << nRet << endl;
+		cout << "Abort. ";
 		return;
 	}
 
@@ -70,7 +73,7 @@ void Test_ReadFrame()
 		stm.WriteOutputFile(packet);
 		
 		
-		//Sleep(40);
+		Sleep(40);
 	}
 
 	av_packet_free(&packet);
@@ -137,27 +140,69 @@ void test()
 	//EnumDisplayMonitors();
 }
 
+void Test_Monitor_Settings()
+{
+	DataManager dm;
+	cout << "Monitors Below: \n";
 
+	vector<int> a = dm.GetScreenIDs();
+	for (int i = 0; i < a.size(); i++)
+	{
+		RECT r;
+		dm.GetScreenInfo(a[i], &r);
+		cout << "    id = " << a[i] << " ( " << r.left << " " << r.top << " ) ( " << r.right << " " << r.bottom << " )"<< endl;
+	}
+}
+
+void Test_Channels()
+{
+	DataManager dm;
+
+	char* pFile;
+	vector<int>* pChannels;
+
+	cout << "Channels: \n";
+	for (int i = 0; i < 6; i++)
+	{
+		if (dm.m_ChannelFile[i] == NULL)
+		{
+			pFile = "";
+		}
+		else
+		{
+			pFile = dm.m_ChannelFile[i];
+		}
+
+		cout << "\n    File = " << pFile << endl;
+
+		cout << "        Channels = ";
+		pChannels = &(dm.m_Channels[i]);
+		for (int j = 0; j < pChannels->size(); j++)
+		{
+			cout << (*pChannels)[j] << " " ;
+		}
+		cout << "\n";
+	}
+
+	cout << "\n\nGetTouringCameras: ";
+	vector<int> vRet;
+	vRet = dm.GetTouringCameras(1, 4);
+	for (int i = 0; i < vRet.size(); i++)
+	{
+		cout << vRet[i] << " ";
+	}
+
+}
 
 int main(int argc, char* args[])
 {
-	DataManager dm;
-	dm.QueryMonitorSettings();
-	//DISPLAY_DEVICE device = { 0 };
-	//EnumDisplayDevices();
-	
-
-	//int s = GetSystemMetrics(SM_CMONITORS);
-	//GetScreenRect(0);
-	//test();
-	//std::cout << "numbers:" << GetSystemMetrics(SM_CMONITORS) << std::endl;
-	//// 枚举当前的所有显示器
-	//EnumDisplayMonitors(NULL, NULL, EnumMonitor, NULL);
 
 	//dm.GlobalResourceCleanUp();
 
-	//Test_ReadFrame();
+	Test_ReadFrame();
 	//Test_DataManager();
+	//Test_Monitor_Settings();
+	//Test_Channels();
 
 	getchar();
 	

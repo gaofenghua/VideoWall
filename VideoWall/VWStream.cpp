@@ -140,6 +140,12 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 		char strerror_buf[1024];
 		av_strerror(iRet, strerror_buf, 1024);
 		//printf("Couldn't open input stream. avformat_open_input = %d error = %s\n", iRet,strerror_buf);
+
+		if (iRet == AVERROR_HTTP_UNAUTHORIZED)
+		{
+			return ERROR_CONNECTION_UNAUTHORIZED;
+		}
+
 		return ERROR_CONNECTION_FAILED;
 	}
 

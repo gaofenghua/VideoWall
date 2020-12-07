@@ -21,13 +21,14 @@ class DataManager
 		int GetScreenView(int t_ScreenID); // return the number of views
 		int GetViewChannel(int t_ViewID); // return the number of channels
 		int GetSwitchInterval(void); // return the switch interval
-		std::vector<int> GetTouringCameras(int t_ViewID); // return the list of trackerIDs 
+		std::vector<int> GetTouringCameras(int t_ViewID,int t_Index); // return the list of trackerIDs 
 		std::string GetCameraRtsp(int t_CameraID); // return the rtsp url
 		std::vector<int> GetCameraTourInfo(int t_ViewID, int t_ChannelID); // return the list of trackerIDs
 		std::vector<int> GetScreenIDs(void); // return the list of screen ids
 		int GetScreenInfo(int t_ScreenID, RECT* pScreenRect); // return content of the screen rect
 
 	private:
+public:
 		int m_Status = 0;
 		std::string m_FileName = "./config.txt";
 
@@ -52,14 +53,14 @@ class DataManager
 		bool chkNumber(std::string& str);
 		std::vector<std::string> split(std::string& str, char delim);
 		bool validateIP(std::string ip);
-public:
+
 		int m_nTotalMonitor = 0;
 		MONITORINFOEX* m_MonitorInfo = NULL;
 		void QueryMonitorSettings();
 		BOOL CALLBACK EnumMonitor(HMONITOR handle, HDC hdc, LPRECT rect, LPARAM param);
 
 	public:
-		int ReadChannelsFile(char *pFileName);
+		int ReadChannelsFile(int nChannelGroup);
 		void WriteFile(void);
 		void GlobalResourceInitial();
 		void GlobalResourceCleanUp();

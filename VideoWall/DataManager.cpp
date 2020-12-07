@@ -28,6 +28,8 @@ DataManager::DataManager()
 	}
 
 	GlobalResourceInitial();
+
+	QueryMonitorSettings();
 }
 DataManager::~DataManager()
 {
@@ -168,7 +170,7 @@ int DataManager::ReadConfigFile()
 	{
 		if (m_ChannelFile[i] != NULL)
 		{
-			nRet = ReadChannelsFile(m_ChannelFile[i]);
+			nRet = ReadChannelsFile(i);
 			if (nRet != 0)
 			{
 				return nRet;
@@ -201,10 +203,26 @@ int DataManager::GetSwitchInterval(void)
 {
 	return 0;
 }
-vector<int> DataManager::GetTouringCameras(int t_ViewID)
+vector<int> DataManager::GetTouringCameras(int t_ViewID, int t_Index)
 {
-	vector<int> a;
-	return a;
+	int nStart = t_Index * m_ViewNumber;
+	int nTotal = m_Channels[t_ViewID].size();
+
+	int nLeft = nStart % nTotal;
+
+	vector<int> channels;
+	for (int i = 0; i < m_ViewNumber; i++)
+	{
+		if (nLeft >= nTotal)
+		{
+			nLeft = 0;
+		}
+		channels.push_back(m_Channels[t_ViewID][nLeft]);
+
+		nLeft = nLeft + 1;
+	}
+
+	return channels;
 }
 vector<int> DataManager::GetCameraTourInfo(int t_ViewID, int t_ChannelID)
 {
@@ -213,11 +231,22 @@ vector<int> DataManager::GetCameraTourInfo(int t_ViewID, int t_ChannelID)
 }
 vector<int> DataManager::GetScreenIDs(void)
 {
-	vector<int> a;
-	return a;
+	vector<int> screenids;
+
+	for (int i = 0; i < m_nTotalMonitor; i++)
+	{
+		screenids.push_back(i);
+	}
+
+	return screenids;
 }
 int DataManager::GetScreenInfo(int t_ScreenID, RECT* pScreenRect)
 {
+	RECT screenrect;
+
+	screenrect = m_MonitorInfo[t_ScreenID].rcMonitor;
+	*pScreenRect = screenrect;
+
 	return 0;
 }
 string DataManager::GetCameraRtsp(int t_CameraID)
@@ -239,7 +268,7 @@ string DataManager::GetCameraRtsp(int t_CameraID)
 	sUrl += m_PassWord;
 	sUrl += "&stream=2";
 
-	printf("GetCameraRtsp: input = %d, output = %s\n", t_CameraID, sUrl.data());
+	//printf("GetCameraRtsp: input = %d, output = %s\n", t_CameraID, sUrl.data());
 
 	return sUrl ;
 }
@@ -261,8 +290,11 @@ void DataManager::WriteFile()
 	outFile.close();
 }
 
-int DataManager::ReadChannelsFile(char *pFileName)
+int DataManager::ReadChannelsFile(int nChannelGroup)
 {
+	char *pFileName = m_ChannelFile[nChannelGroup];
+	vector<int>* pChannels = &(m_Channels[nChannelGroup]);
+
 	string s;
 	char buffer[256];
 	ifstream inFile;
@@ -277,7 +309,7 @@ int DataManager::ReadChannelsFile(char *pFileName)
 	{
 		getline(inFile,s);
 		
-		cout << s << endl;
+		//cout << s << endl;
 		if (s == "")
 		{
 			continue;
@@ -286,6 +318,7 @@ int DataManager::ReadChannelsFile(char *pFileName)
 		try
 		{
 			int nChannel = stoi(s);
+			pChannels->push_back(nChannel);
 		}
 		catch (...) 
 		{
@@ -336,17 +369,6 @@ bool DataManager::validateIP(string ip)
 	return true;
 }
 
-BOOL CALLBACK EnumMonitor(HMONITOR handle, HDC hdc, LPRECT rect, LPARAM param) {
-	MONITORINFOEX mi;
-	mi.cbSize = sizeof(mi);
-	GetMonitorInfo(handle, &mi);
-	std::cout << "is MONITORINFOF_PRIMARY:" << mi.dwFlags << std::endl;
-	std::cout << "width:" << (mi.rcMonitor.right - mi.rcMonitor.left) << std::endl;
-	std::cout << "height" << (mi.rcMonitor.bottom - mi.rcMonitor.top) << std::endl;
-	return true;
-
-}
-
 BOOL CALLBACK DataManager::EnumMonitor(HMONITOR handle, HDC hdc, LPRECT rect, LPARAM param)
 {
 
@@ -357,9 +379,9 @@ BOOL CALLBACK DataManager::EnumMonitor(HMONITOR handle, HDC hdc, LPRECT rect, LP
 	MONITORINFOEX mi;
 	mi.cbSize = sizeof(mi);
 	GetMonitorInfo(handle, &mi);
-	std::cout << "is MONITORINFOF_PRIMARY:" << mi.dwFlags << std::endl;
-	std::cout << "width:" << (mi.rcMonitor.right - mi.rcMonitor.left) << std::endl;
-	std::cout << "height" << (mi.rcMonitor.bottom - mi.rcMonitor.top) << std::endl;
+	//std::cout << "is MONITORINFOF_PRIMARY:" << mi.dwFlags << std::endl;
+	//std::cout << "width:" << (mi.rcMonitor.right - mi.rcMonitor.left) << std::endl;
+	//std::cout << "height" << (mi.rcMonitor.bottom - mi.rcMonitor.top) << std::endl;
 
 	int nMonitorIndex = 0;
 	for (int i = 0; i < pm->m_nTotalMonitor; i++)
