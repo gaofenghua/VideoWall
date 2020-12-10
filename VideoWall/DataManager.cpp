@@ -209,6 +209,12 @@ int DataManager::GetViewChannel(int t_ViewID)
 	{
 		return m_Status;
 	}
+
+	if (t_ViewID < 0 || t_ViewID >= 6)
+	{
+		return ERROR_INVALID_PARAMETER;
+	}
+
 	return m_ViewNumber;
 }
 int DataManager::GetSwitchInterval(void)
