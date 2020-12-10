@@ -10,6 +10,54 @@ using namespace std;
 void Test_DataManager()
 {
 	DataManager dm;
+
+	if (dm.m_Status != 0)
+	{
+		cout << "DataManager = " << dm.m_Status << endl << endl;
+		//cout << dm.m_ErrorString << endl;
+	}
+
+	int nViewID;
+	int nIndex;
+	vector<int> vRet;
+	int nScreenID;
+	RECT rRet;
+
+	cout << "GetViewChannel: Please input" << endl;
+	cout << "   View ID = ";
+	cin >> nViewID;
+	cout << "   output = " << dm.GetViewChannel(nViewID) << endl;
+
+	cout << "\nGetSwitchInterval: " << endl;
+	cout << "    output = " << dm.GetSwitchInterval() << endl;
+
+	cout << "\nGetTouringCameras: Please input" << endl;
+	cout << "    view id = ";
+	cin >> nViewID;
+	cout << "    index = ";
+	cin >> nIndex;
+	vRet = dm.GetTouringCameras(nViewID, nIndex);
+	cout << "    output = ";
+	for (int i = 0; i < vRet.size(); i++)
+	{
+		cout << " " << vRet[i];
+	}
+	cout << endl;
+
+	cout << "\nGetScreenIDs: " << endl;
+	vRet = dm.GetScreenIDs();
+	cout << "    output = ";
+	for (int i = 0; i < vRet.size(); i++)
+	{
+		cout << " " << vRet[i];
+	}
+	cout << endl;
+
+	cout << "\nGetScreenInfo: Please input" << endl;
+	cout << "   Screen ID = ";
+	cin >> nScreenID;
+	dm.GetScreenInfo(nScreenID, &rRet);
+	cout << "   output = " << rRet.left << " " << rRet.top << "," << rRet.right <<" " << rRet.bottom << endl;
 }
 
 void Test_ReadFrame()
@@ -199,17 +247,15 @@ int main(int argc, char* args[])
 
 	//dm.GlobalResourceCleanUp();
 
-	Test_ReadFrame();
-	//Test_DataManager();
+	//Test_ReadFrame();
+	Test_DataManager();
 	//Test_Monitor_Settings();
 	//Test_Channels();
-
-	getchar();
 	
-
 	getchar();
-	printf("Testing function ends! \n");
-	
+	printf("\nTesting function ends! \n");
+	getchar();
+
 	return 0;
 }
 

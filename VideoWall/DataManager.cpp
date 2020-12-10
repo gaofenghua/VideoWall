@@ -72,13 +72,17 @@ int DataManager::ReadConfigFile()
 	}
 	catch (const FileIOException &fioex)
 	{
-		std::cerr << "I/O error while reading file." << std::endl;
+		//std::cerr << "I/O error while reading file." << std::endl;
 		return(ERROR_CONFIG_FILE_MISSING);
 	}
 	catch (const ParseException &pex)
 	{
-		std::cerr << "Parse error at " << pex.getFile() << ":" << pex.getLine()
-			<< " - " << pex.getError() << std::endl;
+		//std::cerr << "Parse error at " << pex.getFile() << ":" << pex.getLine()
+		//	<< " - " << pex.getError() << std::endl;
+
+		m_ErrorString = "Parse error at ";
+		m_ErrorString = m_ErrorString + pex.getFile() + ":" + to_string(pex.getLine()) + " - " + pex.getError();
+
 		return(ERROR_CONFIGURATION_FORMAT_UNKNOW);
 	}
 
@@ -93,7 +97,11 @@ int DataManager::ReadConfigFile()
 	}
 	catch (const SettingNotFoundException &nfex)
 	{
-		cerr << "ERROR: Setting not found in configuration file: " << nfex.getPath() << endl;
+		//cerr << "ERROR: Setting not found in configuration file: " << nfex.getPath() << endl;
+		
+		m_ErrorString = "ERROR: Setting not found in configuration file: ";
+		m_ErrorString += nfex.getPath();
+		
 		return(ERROR_CONFIGURATION_SETTING_MISSING);
 	}
 
@@ -103,7 +111,7 @@ int DataManager::ReadConfigFile()
 	}
 	catch (const SettingNotFoundException &nfex)
 	{
-		cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
+		//cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
 	}
 
 	//try
@@ -122,7 +130,7 @@ int DataManager::ReadConfigFile()
 	}
 	catch (const SettingNotFoundException &nfex)
 	{
-		cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
+		//cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
 	}
 		
 	//for (int i = 0; i < m_ScreenNumber; i++)
@@ -197,20 +205,49 @@ int DataManager::GetScreenView(int t_ScreenID)
 }
 int DataManager::GetViewChannel(int t_ViewID)
 {
-	return 0;
+	if (m_Status != 0)
+	{
+		return m_Status;
+	}
+	return m_ViewNumber;
 }
 int DataManager::GetSwitchInterval(void)
 {
-	return 0;
+	if (m_Status != 0)
+	{
+		return m_Status;
+	}
+	return m_SwitchInterval;
 }
 vector<int> DataManager::GetTouringCameras(int t_ViewID, int t_Index)
 {
+	vector<int> channels;
+
+	if (m_Status != 0)
+	{
+		return channels;
+	}
+
+	if (t_ViewID < 0 || t_ViewID >= 6)
+	{
+		return channels;
+	}
+
+	if (t_Index < 0 || t_Index > 1000)
+	{
+		return channels;
+	}
+
 	int nStart = t_Index * m_ViewNumber;
 	int nTotal = m_Channels[t_ViewID].size();
 
+	if (nTotal == 0)
+	{
+		return channels;
+	}
+
 	int nLeft = nStart % nTotal;
 
-	vector<int> channels;
 	for (int i = 0; i < m_ViewNumber; i++)
 	{
 		if (nLeft >= nTotal)
@@ -233,6 +270,11 @@ vector<int> DataManager::GetScreenIDs(void)
 {
 	vector<int> screenids;
 
+	if (m_Status != 0)
+	{
+		return screenids;
+	}
+
 	for (int i = 0; i < m_nTotalMonitor; i++)
 	{
 		screenids.push_back(i);
@@ -242,7 +284,18 @@ vector<int> DataManager::GetScreenIDs(void)
 }
 int DataManager::GetScreenInfo(int t_ScreenID, RECT* pScreenRect)
 {
-	RECT screenrect;
+	if (m_Status != 0)
+	{
+		return m_Status;
+	}
+
+	RECT screenrect = { 0,0,0,0 };
+
+	if (t_ScreenID >= m_nTotalMonitor || t_ScreenID < 0)
+	{
+		*pScreenRect = screenrect;
+		return ERROR_INVALID_PARAMETER;
+	}
 
 	screenrect = m_MonitorInfo[t_ScreenID].rcMonitor;
 	*pScreenRect = screenrect;
