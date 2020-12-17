@@ -6,6 +6,8 @@
 #define DATAMANAGER_ERROR	0
 
 #define ERROR_CONFIG_FILE_MISSING				DATAMANAGER_ERROR-1
+// According to the weekly meeting comments on 2020-12-14,
+// When ERROR_CONFIGURATION_FORMAT_UNKNOW happens, m_ErrorString is set to indicate the exact line number and error.  
 #define ERROR_CONFIGURATION_FORMAT_UNKNOW		DATAMANAGER_ERROR-2
 #define ERROR_CONFIGURATION_SETTING_MISSING		DATAMANAGER_ERROR-3
 #define ERROR_IP_FORMAT							DATAMANAGER_ERROR-4
@@ -13,11 +15,16 @@
 #define ERROR_CHANNELSFILE_DATA_NOT_NUMBER		DATAMANAGER_ERROR-6
 #define ERROR_INVALID_PARAMETER					DATAMANAGER_ERROR-7
 
+
+
 class DataManager
 {
 	public:
 		DataManager();
 		~DataManager();
+
+		int m_Status = 0;
+		std::string m_ErrorString;
 
 		int GetScreenView(int t_ScreenID); // return the number of views. Removed according to the weekly meeting on 11/16/2020
 		int GetViewChannel(int t_ViewID); // return the number of channels
@@ -55,8 +62,7 @@ class DataManager
 		BOOL CALLBACK EnumMonitor(HMONITOR handle, HDC hdc, LPRECT rect, LPARAM param);
 
 	public:
-		int m_Status = 0;
-		std::string m_ErrorString;
+
 		char* m_ChannelFile[6] = { NULL,NULL,NULL,NULL,NULL,NULL };
 		std::vector<std::vector<int> > m_Channels;
 

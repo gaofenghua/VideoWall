@@ -12,6 +12,8 @@ view_number = 16
 */
 channels_0 = "channels_0.txt"
 channels_1 = "channels_1.txt"
+channels_2 = "channels_0.txt"
+
 
 
 

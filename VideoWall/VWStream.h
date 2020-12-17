@@ -24,7 +24,9 @@ extern "C"
 #define ERROR_AV_CODEC			VWSTREAM_ERROR-5
 #define ERROR_NO_MORE_DATA		VWSTREAM_ERROR-6
 #define ERROR_CONNECTION_UNAUTHORIZED	VWSTREAM_ERROR-7
-
+//According to the weekly meeting commnets on 12-14-2020
+//Stream resolution bigger than D1 will be rejected with error
+#define ERROR_RESOLUTION_TOO_BIG	VWSTREAM_ERROR-8
 
 
 class VWStream

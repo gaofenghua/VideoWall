@@ -202,6 +202,17 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 
 	//Init_BitStream_Filter();
 
+	//
+	// D1 704*576
+	//
+	int Max_Resolution = 704 * 576;
+	int Stream_Resolution = video->codecpar->width * video->codecpar->height;
+
+	if (Stream_Resolution > Max_Resolution)
+	{
+		return ERROR_RESOLUTION_TOO_BIG;
+	}
+
 	m_Decoder.pReadFrame_Thread = SDL_CreateThread(ReadFrame_Thread, NULL, (void*)this);
 }
 
