@@ -64,6 +64,10 @@ int ReadFrame_Thread(void *opaque)
 			//printf("ReadFrame_Thread, buffer head = %d, end = %d, flag=%d\r\n", pDecoder->Buffer_Head, pDecoder->Buffer_End, (pDecoder->Package_Buffer[pDecoder->Buffer_End-1]).flags);
 			//SDL_Delay(40);
 		}
+		else
+		{
+			av_packet_unref(pDecoder->packet);
+		}
 	}
 
 	av_packet_free(&(pDecoder->packet));
@@ -78,11 +82,11 @@ int ReadFrame_Thread(void *opaque)
 VWStream::VWStream()
 {
 	Init_Decoder_Data();
-	OpenOutputFile();
+	//OpenOutputFile();
 }
 VWStream::~VWStream()
 {
-	CloseOutputFile();
+	//CloseOutputFile();
 }
 int VWStream::CleanUP()
 {
@@ -97,6 +101,9 @@ int VWStream::CleanUP()
 	}
 
 	avcodec_free_context(&(pDecoder->pCodecCtx));
+
+	SDL_DestroyMutex(pDecoder->BufferLock);
+	pDecoder->BufferLock = NULL;
 
 	return true;
 }
@@ -213,7 +220,11 @@ int VWStream::Connect(int nCameraID, std::string sURL)
 		return ERROR_RESOLUTION_TOO_BIG;
 	}
 
+	pDecoder->BufferLock = SDL_CreateMutex();
+
 	m_Decoder.pReadFrame_Thread = SDL_CreateThread(ReadFrame_Thread, NULL, (void*)this);
+
+	return 0;
 }
 
 int VWStream::ReadFrame(AVPacket *pPacket)
@@ -221,15 +232,14 @@ int VWStream::ReadFrame(AVPacket *pPacket)
 	AVPacket* packet;
 	packet = pPacket;
 
+	VideoDecoder* pDecoder = &m_Decoder;
+
+	SDL_LockMutex(pDecoder->BufferLock);
+
 	if (NULL != pPacket->buf)
 	{
 		av_packet_unref(packet);
 	}
-	
-
-	VideoDecoder* pDecoder = &m_Decoder;
-
-	SDL_LockMutex(pDecoder->BufferLock);
 
 	if (ReadType == Instant)
 	{
