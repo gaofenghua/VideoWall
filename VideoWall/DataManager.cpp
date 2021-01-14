@@ -108,10 +108,26 @@ int DataManager::ReadConfigFile()
 	try
 	{
 		m_SwitchInterval = vw_config.lookup("switch_interval");
+
+		if (m_SwitchInterval < 0)
+		{
+			m_ErrorString = "Setting error at : switch_interval ";
+
+			return(ERROR_INVALID_PARAMETER);
+		}
 	}
-	catch (const SettingNotFoundException &nfex)
+	catch (const SettingException &nfex)
 	{
+		//SettingException
+		//		SettingTypeException
+		//		SettingNotFoundException
+
 		//cerr << "Warnning: Setting not found in configuration file: " << nfex.getPath() << endl;
+		
+		m_ErrorString = "Setting error at ";
+		m_ErrorString = m_ErrorString + ": " + nfex.getPath();
+
+		return(ERROR_INVALID_PARAMETER);
 	}
 
 	//try
@@ -239,10 +255,12 @@ vector<int> DataManager::GetTouringCameras(int t_ViewID, int t_Index)
 		return channels;
 	}
 
-	if (t_Index < 0 || t_Index > 1000)
+	if (t_Index < 1 || t_Index > 1000)
 	{
 		return channels;
 	}
+
+	t_Index = t_Index - 1;
 
 	int nStart = t_Index * m_ViewNumber;
 	int nTotal = m_Channels[t_ViewID].size();
