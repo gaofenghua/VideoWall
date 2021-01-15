@@ -334,8 +334,8 @@ int main(int argc, char* args[])
 	//dm.GlobalResourceCleanUp();
 
 	//Test_ReadFrame();
-	//Test_DataManager();
-	Test_ReConnect();
+	Test_DataManager();
+	//Test_ReConnect();
 
 	//Test_Monitor_Settings();
 	//Test_Channels();
